@@ -32,6 +32,7 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		SingleInstanceLock: &options.SingleInstanceLock{},
 	})
 
 	if err != nil {

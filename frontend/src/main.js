@@ -1,46 +1,49 @@
 import './style.css';
-import './app.css';
 
-import logo from './assets/images/logo-universal.png';
-import {Greet} from '../wailsjs/go/backend/App';
+import * as App from '../wailsjs/go/backend/App';
+import {Terminal} from '@xterm/xterm';
+import {FitAddon} from '@xterm/addon-fit';
+import {WebglAddon} from '@xterm/addon-webgl';
 
-document.querySelector('#app').innerHTML = `
-    <nav class="button-group-toolbar" style="min-width:680px; padding-left:10px; padding-top:5px; padding-right:10px">
-        <sl-button><sl-icon name="house" slot="prefix"></sl-icon>Home</sl-button>
-    </nav>
-    <img id="logo" class="logo">
-      <div class="result" id="result">Please enter your name below 👇</div>
-      <div class="input-box" id="input">
-        <input class="input" id="name" type="text" autocomplete="off" />
-        <button class="btn" onclick="greet()">Greet</button>
-      </div>
-    </div>
-`;
-document.getElementById('logo').src = logo;
+const term = new Terminal();
+term.options.fontFamily = "Menlo, 'DejaVu Sans Mono', 'Lucida Console', monospace";
+const termFitAddon = new FitAddon();
+const termWebglAddon = new WebglAddon();
+termWebglAddon.onContextLoss(e => {
+    termWebglAddon.dispose();
+});
 
-let nameElement = document.getElementById("name");
-nameElement.focus();
-let resultElement = document.getElementById("result");
+term.loadAddon(termFitAddon);
+term.loadAddon(termWebglAddon);
+term.open(document.getElementById('terminal'));
+termFitAddon.fit();
 
-// Setup the greet function
-window.greet = function () {
-    // Get name
-    let name = nameElement.value;
+const EVT_TERM = 'term';
 
-    // Check if the input is empty
-    if (name === "") return;
+window.runtime.EventsOn(EVT_TERM, (data) => {
+    term.write(data);
+})
 
-    // Call App.Greet(name)
-    try {
-        Greet(name)
-            .then((result) => {
-                // Update result with data back from App.Greet()
-                resultElement.innerText = result;
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-    } catch (err) {
-        console.error(err);
-    }
+// Expose the App.Version function to the window
+window.appVersion = function() { 
+    term.write('\r\n')
+    App.Version(); 
 };
+
+// Tell the backend we are ready
+App.Pronto();
+
+// function () {
+//     Version()
+    // Call App.Greet(name)
+    // try {
+    //         .then((result) => {
+    //             term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ' + result + '\r\n');
+    //         })
+    //         .catch((err) => {
+    //             console.error(err);
+    //         });
+    // } catch (err) {
+    //     console.error(err);
+    // }
+//};

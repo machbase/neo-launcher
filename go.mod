@@ -2,7 +2,10 @@ module github.com/machbase/neo-launcher
 
 go 1.21
 
-require github.com/wailsapp/wails/v2 v2.9.1
+require (
+	github.com/wailsapp/wails/v2 v2.9.1
+	golang.org/x/sys v0.21.0
+)
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
@@ -30,6 +33,5 @@ require (
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 )

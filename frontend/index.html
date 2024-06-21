@@ -17,10 +17,28 @@
         import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
         setBasePath('/static/shoelace/');
     </script>
+
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css"/>
+    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
 </head>
 
 <body>
-    <div id="app"></div>
+    <nav>
+        <div class="button-group-toolbar command-line">
+            <sl-button-group>
+                <sl-button onclick="appVersion()" class="command-line-child" variant="primary" outline>
+                    <sl-icon name="rocket-takeoff" slot="prefix"></sl-icon>machbase-neo serve
+                </sl-button>
+            </sl-button-group>
+            <sl-input placeholder="Flags" class="command-line-child"></sl-input>
+            <sl-button-group>
+                <sl-button onclick="appGreet()" class="command-line-child">
+                    <sl-icon name="three-dots"></sl-icon>
+                </sl-button>
+            </sl-button-group>
+        </div>
+    </nav>
+    <div id="terminal"></div>
     <script src="./src/main.js" type="module"></script>
 </body>
 
