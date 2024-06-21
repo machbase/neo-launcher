@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>neo-launcher</title>
+
+    <script type="module">
+        import '@shoelace-style/shoelace/dist/themes/light.css';
+        import '@shoelace-style/shoelace/dist/themes/dark.css';
+        import '@shoelace-style/shoelace/dist/components/button/button.js';
+        import '@shoelace-style/shoelace/dist/components/icon/icon.js';
+        import '@shoelace-style/shoelace/dist/components/input/input.js';
+        import '@shoelace-style/shoelace/dist/components/rating/rating.js';
+        // Set the base path to the folder you copied Shoelace's assets to
+        import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
+        setBasePath('/static/shoelace/');
+    </script>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="./src/main.js" type="module"></script>
+</body>
+
+</html>
