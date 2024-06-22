@@ -2,8 +2,11 @@
 
 package backend
 
-import "os/exec"
+import (
+	"os/exec"
+	"syscall"
+)
 
 func sysProcAttr(cmd *exec.Cmd) {
-	// do nothing
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 }

@@ -1,3 +1,8 @@
+:root {
+    /* Preventing Scroll "bounce" on browser */
+    overscroll-behavior: none;
+}
+
 body {
     margin: 0;
     font-family: var(--sl-font-mono);
@@ -25,6 +30,20 @@ nav {
     padding: 3px;
 }
 
+.status-line {
+    display: flex;
+    flex-wrap:nowrap;
+    flex-direction: row;
+    position:fixed;
+    bottom:5px;
+    width: calc(100% - 40px);
+}
+
+.status-line-child {
+    flex: 0 100%;
+    padding: 3px;
+}
+
 #terminal {
     border-radius:5px;
     border-style: solid;
@@ -36,4 +55,32 @@ nav {
     margin-right: 10px;
     margin-bottom: 10px;
     padding: 5px;
+    position: fixed;
+    top: 50px;
+    width: calc(100% - 60px);
+    height: calc(100% - 120px);
 }
+
+.label-on-left {
+    --label-width: 8.75rem;
+    --gap-width: 1rem;
+  }
+
+  .label-on-left + .label-on-left {
+    margin-top: var(--sl-spacing-medium);
+  }
+
+  .label-on-left::part(form-control) {
+    display: grid;
+    grid: auto / var(--label-width) 1fr;
+    gap: var(--sl-spacing-3x-small) var(--gap-width);
+    align-items: center;
+  }
+
+  .label-on-left::part(form-control-label) {
+    text-align: right;
+  }
+
+  .label-on-left::part(form-control-help-text) {
+    grid-column-start: 2;
+  }
