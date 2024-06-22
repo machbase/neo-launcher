@@ -225,19 +225,19 @@ window.onShowLauncherOptions = function () {
             .forEach((item) => {
                 switch (item.getAttribute('name')) {
                     case 'data':
-                        item.setAttribute('value', options.data);
+                        item.value = options.data ? options.data : '';
                         break;
                     case 'file':
-                        item.setAttribute('value', options.file);
+                        item.value = options.file ? options.file : '';
                         break;
                     case 'host':
-                        item.setAttribute('value', options.host);
+                        item.value = options.host ? options.host : '';
                         break;
                     case 'log-level':
-                        item.setAttribute('value', options.logLevel);
+                        item.value = options.logLevel ? options.logLevel : 'INFO';
                         break;
                     case 'log-filename':
-                        item.setAttribute('value', options.logFilename);
+                        item.value = options.logFilename ? options.logFilename : '-';
                         break;
                     default:
                         console.log('Unknown option: ' + item.getAttribute('name'));
