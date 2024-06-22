@@ -86,10 +86,14 @@ func (a *App) Startup(ctx context.Context) {
 	}
 	binPath, err := getMachbaseNeoPath(binPath)
 	if err != nil {
+		binName := "machbase-neo executable file"
+		if runtime.GOOS == "windows" {
+			binName = "machbase-neo.exe file"
+		}
 		wailsRuntime.MessageDialog(ctx, wailsRuntime.MessageDialogOptions{
 			Type:    wailsRuntime.ErrorDialog,
 			Title:   "Error",
-			Message: "Can not find machbase-neo executable. Please check the path.",
+			Message: fmt.Sprintf("Can not find %s. Please check the path.", binName),
 			Buttons: []string{"Quit"},
 		})
 		wailsRuntime.Quit(ctx)
@@ -108,7 +112,7 @@ func (a *App) Startup(ctx context.Context) {
 }
 
 func (a *App) BeforeClose(ctx context.Context) bool {
-	if a.na.process != nil {
+	if a.na != nil && a.na.process != nil {
 		rsp, err := wailsRuntime.MessageDialog(a.ctx, wailsRuntime.MessageDialogOptions{
 			Type:          wailsRuntime.QuestionDialog,
 			Title:         "Server is running",
@@ -161,6 +165,9 @@ func (w *AppWriter) Write(p []byte) (n int, err error) {
 
 // forntend calls this method when the app is ready
 func (a *App) Pronto() {
+	if a.na == nil {
+		return
+	}
 	a.na.Open()
 
 	if a.conf.LaunchOptions != nil {
