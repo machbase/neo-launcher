@@ -5,22 +5,20 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"sync"
 )
 
 type NeoAgent struct {
-	binPath       string
-	exeArgs       map[string]string
-	exeArgsOnce   sync.Once
-	stdoutWriter  io.Writer
-	stderrWriter  io.Writer
-	logWriter     io.Writer
-	process       *os.Process
-	processWg     sync.WaitGroup
-	stateC        chan NeoState
-	stateCallback func(NeoState)
+	binPath         string
+	makeLaunchFlags func() []string
+	stdoutWriter    io.Writer
+	stderrWriter    io.Writer
+	logWriter       io.Writer
+	process         *os.Process
+	processWg       sync.WaitGroup
+	stateC          chan NeoState
+	stateCallback   func(NeoState)
 }
 
 type NeoState string
@@ -36,8 +34,7 @@ type Option func(*NeoAgent)
 
 func NewNeoAgent(opts ...Option) *NeoAgent {
 	neoAgent := &NeoAgent{
-		stateC:  make(chan NeoState),
-		exeArgs: map[string]string{},
+		stateC: make(chan NeoState),
 	}
 	for _, opt := range opts {
 		opt(neoAgent)
@@ -75,15 +72,13 @@ func WithStateCallback(cb func(NeoState)) Option {
 	}
 }
 
+func WithLaunchFlags(fn func() []string) Option {
+	return func(na *NeoAgent) {
+		na.makeLaunchFlags = fn
+	}
+}
+
 func (na *NeoAgent) Open() {
-	na.exeArgsOnce.Do(func() {
-		dir := filepath.Dir(na.binPath)
-		na.exeArgs[FLAG_DATA] = filepath.Join(dir, "machbase_home")
-		na.exeArgs[FLAG_FILE] = dir
-		na.exeArgs[FLAG_HOST] = "127.0.0.1"
-		na.exeArgs[FLAG_LOG_LEVEL] = "INFO"
-		na.exeArgs[FLAG_LOG_FILENAME] = "-"
-	})
 	if na.process != nil {
 		na.stateC <- NeoRunning
 		return
@@ -105,42 +100,8 @@ func (na *NeoAgent) Close() {
 	}
 }
 
-const (
-	FLAG_DATA         = "data"
-	FLAG_FILE         = "file"
-	FLAG_HOST         = "host"
-	FLAG_LOG_LEVEL    = "log-level"
-	FLAG_LOG_FILENAME = "log-filename"
-)
-
-var FLAGS = []string{FLAG_DATA, FLAG_FILE, FLAG_HOST, FLAG_LOG_LEVEL, FLAG_LOG_FILENAME}
-
-func (na *NeoAgent) SetFlag(key, value string) {
-	na.exeArgs[key] = value
-}
-
-func (na *NeoAgent) RemoveFlag(key string) {
-	delete(na.exeArgs, key)
-}
-
-func (na *NeoAgent) GetFlag(key string) string {
-	return na.exeArgs[key]
-}
-
-func (na *NeoAgent) GetFlagArgs() []string {
-	args := []string{}
-	for _, k := range FLAGS {
-		if v, ok := na.exeArgs[k]; ok {
-			args = append(args, fmt.Sprintf("--%s %s", k, v))
-		}
-	}
-	return args
-}
-
 func (na *NeoAgent) StartServer() {
 	na.stateC <- NeoStarting
-
-	args := na.GetFlagArgs()
 
 	pname := ""
 	pargs := []string{}
@@ -149,11 +110,11 @@ func (na *NeoAgent) StartServer() {
 		pargs = append(pargs, "/c")
 		pargs = append(pargs, na.binPath)
 		pargs = append(pargs, "serve")
-		pargs = append(pargs, args...)
+		pargs = append(pargs, na.makeLaunchFlags()...)
 	} else {
 		pname = na.binPath
 		pargs = append(pargs, "serve")
-		pargs = append(pargs, args...)
+		pargs = append(pargs, na.makeLaunchFlags()...)
 	}
 	cmd := exec.Command(pname, pargs...)
 	sysProcAttr(cmd)

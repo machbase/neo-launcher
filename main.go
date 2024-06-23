@@ -34,6 +34,7 @@ func main() {
 			Handler: NewFileLoader(),
 		},
 		OnStartup:     app.Startup,
+		OnDomReady:    app.OnDomReady,
 		OnBeforeClose: app.BeforeClose,
 		OnShutdown:    app.Shutdown,
 		Bind: []interface{}{

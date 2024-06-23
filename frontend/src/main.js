@@ -93,9 +93,12 @@ window.runtime.EventsOn(EVT_LOG, (data) => {
     term.write(data);
 })
 window.runtime.EventsOn(EVT_FLAGS, (data) => {
-    console.log('Flags: ' + data);
     let flags = document.getElementById('launchFlags');
-    flags.value = data;
+    flags.value = data.flags.join(' ');
+
+    let launchCmdWithFlags = document.getElementById('launchCmdWithFlags');
+    let fullCmd = data.binPath+' serve '+data.flags.join(' ');
+    launchCmdWithFlags.innerText = fullCmd;
 })
 window.runtime.EventsOn(EVT_STATE, (data) => {
     let launchButton = document.getElementById('launchButton');
@@ -149,21 +152,6 @@ window.runtime.EventsOn(EVT_STATE, (data) => {
     stateText.innerText = data.toUpperCase();
 })
 
-App.GetOS().then((os) => {
-    openBrowserIcon = document.getElementById('openBrowserIcon');
-    switch (os) {
-        case "darwin":
-            openBrowserIcon.setAttribute('name', 'browser-safari');
-            break;
-        case "windows":
-            openBrowserIcon.setAttribute('name', 'browser-edge');
-            break;
-        default:
-            openBrowserIcon.setAttribute('name', 'browser-firefox');
-            break;
-    }
-})
-
 // Expose the App.Version function to the window
 window.appVersion = function () {
     App.DoVersion();
@@ -186,21 +174,26 @@ window.appCopyLog = function () {
 };
 
 window.appGetProcessInfo = function () {
-    App.GetProcessInfo();
+    App.DoGetProcessInfo();
 }
 
-window.setTheme = function(newTheme) {
+window.setTheme = function (newTheme) {
     const themeIcon = document.getElementById('themeIcon')
     const newIcon = newTheme === 'sl-theme-dark' ? 'sun-fill' : 'moon-fill';
     themeIcon.name = newIcon;
 
-    const oldTheme = newTheme ===  'sl-theme-dark' ? 'sl-theme-light' : 'sl-theme-dark';
+    const oldTheme = newTheme === 'sl-theme-dark' ? 'sl-theme-light' : 'sl-theme-dark';
     document.documentElement.classList.replace(oldTheme, newTheme);
 
     App.DoSetTheme(newTheme);
 
     const termTheme = newTheme === 'sl-theme-dark' ? termThemeDark : termThemeLight;
-    changeTermTheme(termTheme)
+
+    let container = document.getElementById('terminal');
+    container.style.backgroundColor = termTheme.background;
+    container.style.borderColor = termTheme.background;
+    term.options.theme = { ...termTheme };
+    term.refresh(0, term.rows - 1);
 }
 
 window.toggleTheme = function () {
@@ -208,14 +201,6 @@ window.toggleTheme = function () {
     const curTheme = root.classList.contains('sl-theme-dark') ? 'sl-theme-dark' : 'sl-theme-light';
     const newTheme = curTheme === 'sl-theme-dark' ? 'sl-theme-light' : 'sl-theme-dark';
     window.setTheme(newTheme);
-}
-
-function changeTermTheme(theme) {
-    let container = document.getElementById('terminal');
-    container.style.backgroundColor = theme.background;
-    container.style.borderColor = theme.background;
-    term.options.theme = { ...theme };
-    term.refresh(0, term.rows - 1);
 }
 
 window.onShowLauncherOptions = function () {
@@ -239,6 +224,9 @@ window.onShowLauncherOptions = function () {
                     case 'log-filename':
                         item.value = options.logFilename ? options.logFilename : '-';
                         break;
+                    case 'experiment':
+                        item.checked = options.experiment
+                        break;
                     default:
                         console.log('Unknown option: ' + item.getAttribute('name'));
                         break;
@@ -254,12 +242,33 @@ window.onHideLauncherOptions = function () {
         file: drawer.querySelector(".item[name='file']").value,
         host: drawer.querySelector(".item[name='host']").value,
         logLevel: drawer.querySelector(".item[name='log-level']").value,
-        logFilename: drawer.querySelector(".item[name='log-filename']").value
+        logFilename: drawer.querySelector(".item[name='log-filename']").value,
+        experiment: drawer.querySelector(".item[name='experiment']").checked,
     };
     App.SetLaunchOptions(options)
-    .then(() => {
-        drawer.hide()
-    })  
+        .then(() => {
+            drawer.hide()
+        })
+}
+
+try {
+    openBrowserIcon = document.getElementById('openBrowserIcon');
+    App.DoGetOS().then((os) => {
+        switch (os) {
+            case "darwin":
+                openBrowserIcon.setAttribute('name', 'browser-safari');
+                break;
+            case "windows":
+                openBrowserIcon.setAttribute('name', 'browser-edge');
+                break;
+            default:
+                openBrowserIcon.setAttribute('name', 'browser-firefox');
+                break;
+        }
+    })
+} catch (err) {
+    console.log(err);
+    openBrowserIcon.setAttribute('name', 'browser-chrome');
 }
 
 App.DoGetTheme().then((theme) => {
@@ -269,5 +278,4 @@ App.DoGetTheme().then((theme) => {
     window.setTheme('sl-theme-light');
 });
 
-// Tell the backend we are ready
-App.Pronto();
+App.DoFrontendReady();

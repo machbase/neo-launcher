@@ -62,21 +62,7 @@ type UIOptions struct {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) Startup(ctx context.Context) {
-	if confDir, err := os.UserConfigDir(); err != nil {
-		a.disableConfigPersistence = true
-	} else {
-		confDir = filepath.Join(confDir, "com.machbase.neo-launcher")
-		if _, err := os.Stat(confDir); os.IsNotExist(err) {
-			os.Mkdir(confDir, 0755)
-		}
-		a.configFilename = filepath.Join(confDir, "config.json")
-		if _, err := os.Stat(a.configFilename); err == nil {
-			content, err := os.ReadFile(a.configFilename)
-			if err == nil {
-				json.Unmarshal(content, &a.conf)
-			}
-		}
-	}
+	a.loadLaunchOptions()
 
 	var binPath string
 	// for development
@@ -102,12 +88,13 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	a.na = NewNeoAgent(
 		WithBinPath(binPath),
-		WithStdoutWriter(a.NewWriter(EVT_TERM)),
-		WithStderrWriter(a.NewWriter(EVT_TERM)),
-		WithLogWriter(a.NewWriter(EVT_LOG)),
+		WithStdoutWriter(NewAppWriter(a, EVT_TERM)),
+		WithStderrWriter(NewAppWriter(a, EVT_TERM)),
+		WithLogWriter(NewAppWriter(a, EVT_LOG)),
 		WithStateCallback(func(state NeoState) {
 			wailsRuntime.EventsEmit(a.ctx, string(EVT_STATE), state)
 		}),
+		WithLaunchFlags(a.makeLaunchFlags),
 	)
 }
 
@@ -131,6 +118,17 @@ func (a *App) BeforeClose(ctx context.Context) bool {
 
 func (a *App) Shutdown(ctx context.Context) {
 	a.na.Close()
+	a.saveLaunchOptions()
+}
+
+func NewAppWriter(app *App, evtType EventType) io.Writer {
+	return &AppWriter{
+		app:     app,
+		evtType: evtType,
+	}
+}
+
+func (a *App) saveLaunchOptions() {
 	if !a.disableConfigPersistence {
 		a.conf.LaunchOptions = a.GetLaunchOptions()
 		content, _ := json.Marshal(a.conf)
@@ -138,14 +136,25 @@ func (a *App) Shutdown(ctx context.Context) {
 	}
 }
 
-func (a *App) NewWriter(evtType EventType) io.Writer {
-	return &AppWriter{
-		app:     a,
-		evtType: evtType,
+func (a *App) loadLaunchOptions() {
+	if confDir, err := os.UserConfigDir(); err != nil {
+		a.disableConfigPersistence = true
+	} else {
+		confDir = filepath.Join(confDir, "com.machbase.neo-launcher")
+		if _, err := os.Stat(confDir); os.IsNotExist(err) {
+			os.Mkdir(confDir, 0755)
+		}
+		a.configFilename = filepath.Join(confDir, "config.json")
+		if _, err := os.Stat(a.configFilename); err == nil {
+			content, err := os.ReadFile(a.configFilename)
+			if err == nil {
+				json.Unmarshal(content, &a.conf)
+			}
+		}
 	}
 }
 
-func (a *App) AppendLog(p []byte) {
+func (a *App) appendLog(p []byte) {
 	a.logBuffer.Write(p)
 	if a.logBuffer.Len() > a.logBufferLimit {
 		a.logBuffer.Next(a.logBuffer.Len() - a.logBufferLimit)
@@ -159,22 +168,20 @@ type AppWriter struct {
 
 func (w *AppWriter) Write(p []byte) (n int, err error) {
 	wailsRuntime.EventsEmit(w.app.ctx, string(w.evtType), string(p))
-	w.app.AppendLog(p)
+	w.app.appendLog(p)
 	return len(p), nil
 }
 
-// forntend calls this method when the app is ready
-func (a *App) Pronto() {
+func (a *App) OnDomReady(ctx context.Context) {
+}
+
+func (a *App) DoFrontendReady() {
 	if a.na == nil {
 		return
 	}
 	a.na.Open()
 
-	if a.conf.LaunchOptions != nil {
-		a.SetLaunchOptions(a.conf.LaunchOptions)
-	} else {
-		a.EmitFlags()
-	}
+	a.emitLaunchCmdWithFlags()
 
 	if a.logBuffer.Len() > 0 {
 		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), a.logBuffer.String())
@@ -183,21 +190,27 @@ func (a *App) Pronto() {
 	}
 }
 
-func (a *App) EmitFlags() {
-	strFlags := strings.Join(a.na.GetFlagArgs(), " ")
-	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), strFlags)
+func (a *App) emitLaunchCmdWithFlags() {
+	v := &LaunchCmdWithFlags{
+		BinPath: a.na.binPath,
+		Flags:   a.makeLaunchFlags(),
+	}
+	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), v)
 }
 
-func (a *App) GetOS() string {
-	return runtime.GOOS
+type LaunchCmdWithFlags struct {
+	BinPath string   `json:"binPath"`
+	Flags   []string `json:"flags"`
 }
 
 type ProcessInfo struct {
-	PID int `json:"pid"`
+	OS  string `json:"os"`
+	PID int    `json:"pid"`
 }
 
-func (a *App) GetProcessInfo() string {
+func (a *App) DoGetProcessInfo() string {
 	ret := ProcessInfo{
+		OS:  runtime.GOOS,
 		PID: a.na.process.Pid,
 	}
 	out, _ := json.Marshal(ret)
@@ -206,54 +219,59 @@ func (a *App) GetProcessInfo() string {
 	return result
 }
 
+func (a *App) DoGetOS() string {
+	return runtime.GOOS
+}
+
+func (a *App) DoGetFlags() {
+	strFlags := strings.Join(a.makeLaunchFlags(), " ")
+	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), strFlags)
+}
+
 type LaunchOptions struct {
 	Data        string `json:"data,omitempty"`
 	File        string `json:"file,omitempty"`
 	Host        string `json:"host,omitempty"`
 	LogLevel    string `json:"logLevel,omitempty"`
 	LogFilename string `json:"logFilename,omitempty"`
+	Experiment  bool   `json:"experiment,omitempty"`
 }
 
 func (a *App) GetLaunchOptions() *LaunchOptions {
-	return &LaunchOptions{
-		Data:        a.na.GetFlag(FLAG_DATA),
-		File:        a.na.GetFlag(FLAG_FILE),
-		Host:        a.na.GetFlag(FLAG_HOST),
-		LogLevel:    a.na.GetFlag(FLAG_LOG_LEVEL),
-		LogFilename: a.na.GetFlag(FLAG_LOG_FILENAME),
-	}
+	return a.conf.LaunchOptions
 }
 
 func (a *App) SetLaunchOptions(opts *LaunchOptions) {
-	if a.na == nil || opts == nil {
+	if opts == nil {
 		return
 	}
-	if opts.Data != "" {
-		a.na.SetFlag(FLAG_DATA, opts.Data)
-	} else {
-		a.na.RemoveFlag(FLAG_DATA)
+	a.conf.LaunchOptions = opts
+	a.saveLaunchOptions()
+	a.emitLaunchCmdWithFlags()
+}
+
+func (a *App) makeLaunchFlags() []string {
+	ret := []string{}
+
+	if a.conf.LaunchOptions.Data != "" {
+		ret = append(ret, "--data", a.conf.LaunchOptions.Data)
 	}
-	if opts.File != "" {
-		a.na.SetFlag(FLAG_FILE, opts.File)
-	} else {
-		a.na.RemoveFlag(FLAG_FILE)
+	if a.conf.LaunchOptions.File != "" {
+		ret = append(ret, "--file", a.conf.LaunchOptions.File)
 	}
-	if opts.Host != "" {
-		a.na.SetFlag(FLAG_HOST, opts.Host)
-	} else {
-		a.na.RemoveFlag(FLAG_HOST)
+	if a.conf.LaunchOptions.Host != "" && a.conf.LaunchOptions.Host != "127.0.0.1" {
+		ret = append(ret, "--host", a.conf.LaunchOptions.Host)
 	}
-	if opts.LogLevel != "" {
-		a.na.SetFlag(FLAG_LOG_LEVEL, opts.LogLevel)
-	} else {
-		a.na.SetFlag(FLAG_LOG_LEVEL, "INFO")
+	if a.conf.LaunchOptions.LogLevel != "INFO" {
+		ret = append(ret, "--log-level", a.conf.LaunchOptions.LogLevel)
 	}
-	if opts.LogFilename != "" {
-		a.na.SetFlag(FLAG_LOG_FILENAME, opts.LogFilename)
-	} else {
-		a.na.SetFlag(FLAG_LOG_FILENAME, "-")
+	if a.conf.LaunchOptions.LogFilename != "" && a.conf.LaunchOptions.LogFilename != "-" {
+		ret = append(ret, "--log-filename", a.conf.LaunchOptions.LogFilename)
 	}
-	a.EmitFlags()
+	if a.conf.LaunchOptions.Experiment {
+		ret = append(ret, "--experiment", "true")
+	}
+	return ret
 }
 
 func (a *App) DoOpenBrowser() {
