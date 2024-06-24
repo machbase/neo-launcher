@@ -49,6 +49,11 @@ func NewApp() *App {
 			UI: UIOptions{
 				Theme: "sl-theme-light",
 			},
+			LaunchOptions: &LaunchOptions{
+				Host:       "127.0.0.1",
+				LogLevel:   "INFO",
+				Experiment: false,
+			},
 		},
 	}
 }
@@ -81,15 +86,14 @@ func (a *App) Startup(ctx context.Context) {
 	defer a.naReady.Done()
 
 	var binPath = ""
-	if a.conf.LaunchOptions != nil {
-		binPath = a.conf.LaunchOptions.BinPath
+	// for development
+	// wails dev -appargs "<path to machbase-neo>"
+	if len(os.Args) > 1 {
+		binPath = os.Args[1]
 	} else {
-		// for development
-		// wails dev -appargs "<path to machbase-neo>"
-		if len(os.Args) > 1 {
-			binPath = os.Args[1]
-		}
+		binPath = a.conf.LaunchOptions.BinPath
 	}
+
 	cwdPath, _ := os.Executable()
 	if runtime.GOOS == "darwin" {
 		cwdPath = filepath.Join(filepath.Dir(cwdPath), "../../..")
@@ -258,9 +262,6 @@ func (a *App) loadLaunchOptions() {
 			} else {
 				a.launcherLog("load config error: " + err.Error())
 			}
-		} else {
-			a.launcherLog("load config file error: " + err.Error())
-			a.disableConfigPersistence = true
 		}
 	}
 }
