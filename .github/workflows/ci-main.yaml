@@ -114,19 +114,12 @@ jobs:
           recursive: false
           files: |
             neo-launcher.exe
-      - name: Archive
-        uses: thedoctor0/zip-release@0.7.6
-        with:
-          type: 'zip'
-          filename: neo-launcher.zip
-          directory: build/bin
-          path: neo-launcher.exe
       - name: Release files
         uses: svenstaro/upload-release-action@v2
         if: startsWith(github.ref, 'refs/tags/v')
         with:
             repo_token: ${{ secrets.GIT_PASS }}
-            file: build/bin/neo-launcher.zip
+            file: build/bin/neo-launcher.exe
             asset_name: neo-launcher-$tag-windows-amd64.zip
             repo_name: machbase/neo-launcher
             prerelease: true
@@ -138,7 +131,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: neo-launcher-snapshot-windows-amd64
-          path: build/bin/neo-launcher.zip
+          path: build/bin/neo-launcher.exe
           retention-days: 5
          
 
