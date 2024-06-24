@@ -18,8 +18,12 @@ func getMachbaseNeoPath(defaultPath string) (string, error) {
 		}
 	}
 
-	if _, err := os.Stat(neoExePath); err != nil {
+	if stat, err := os.Stat(neoExePath); err != nil {
 		return "", err
+	} else {
+		if stat.IsDir() {
+			return "", os.ErrNotExist
+		}
 	}
 
 	return neoExePath, nil

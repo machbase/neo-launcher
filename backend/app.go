@@ -104,22 +104,39 @@ func (a *App) Startup(ctx context.Context) {
 select_bin_path:
 	binPath, err := getMachbaseNeoPath(binPath)
 	if err != nil {
-		rsp, _ := wailsRuntime.MessageDialog(ctx, wailsRuntime.MessageDialogOptions{
-			Type:          wailsRuntime.ErrorDialog,
-			Title:         "Not found",
-			Message:       fmt.Sprintf("Can not find %s. Please check the path.", displayBinName),
-			Buttons:       []string{"Quit", "Select..."},
-			DefaultButton: "Quit",
-			CancelButton:  "Quit",
-		})
-		if rsp == "Select..." {
-			binPath, err = wailsRuntime.OpenFileDialog(ctx, wailsRuntime.OpenDialogOptions{
-				DefaultDirectory:           cwdPath,
-				DefaultFilename:            binName,
-				Title:                      "Select " + binName,
-				ResolvesAliases:            true,
-				TreatPackagesAsDirectories: false,
-			})
+		dialogOpts := wailsRuntime.MessageDialogOptions{
+			Type:  wailsRuntime.QuestionDialog,
+			Title: "Not found",
+		}
+		openDialogOpts := wailsRuntime.OpenDialogOptions{
+			DefaultDirectory:           cwdPath,
+			DefaultFilename:            binName,
+			Title:                      "Select " + binName,
+			ResolvesAliases:            true,
+			TreatPackagesAsDirectories: false,
+		}
+		if runtime.GOOS == "windows" {
+			msgLines := []string{
+				fmt.Sprintf("Can not find %s.", displayBinName),
+				"Do you want to find machbase-neo.exe manually or quit?",
+				"\t\"Yes\" to select manually",
+				"\t\"No\" to quit",
+			}
+			dialogOpts.Message = strings.Join(msgLines, "\n")
+			dialogOpts.Buttons = []string{"Yes", "No"}
+			dialogOpts.DefaultButton = "No"
+			openDialogOpts.Filters = []wailsRuntime.FileFilter{
+				{DisplayName: "Executables", Pattern: "*.exe"},
+			}
+		} else {
+			dialogOpts.Message = fmt.Sprintf("Can not find %s. Please check the path.", displayBinName)
+			dialogOpts.Buttons = []string{"Quit", "Select..."}
+			dialogOpts.DefaultButton = "Quit"
+			dialogOpts.CancelButton = "Quit"
+		}
+		rsp, _ := wailsRuntime.MessageDialog(ctx, dialogOpts)
+		if rsp == "Select..." || rsp == "Yes" {
+			binPath, err = wailsRuntime.OpenFileDialog(ctx, openDialogOpts)
 			if err != nil {
 				wailsRuntime.MessageDialog(ctx, wailsRuntime.MessageDialogOptions{
 					Type:    wailsRuntime.ErrorDialog,
@@ -157,7 +174,7 @@ func (a *App) BeforeClose(ctx context.Context) bool {
 			DefaultButton: "Cancel",
 			CancelButton:  "Canel",
 		})
-		if rsp == "Cancel" && err == nil {
+		if (rsp == "Cancel" || rsp == "No") && err == nil {
 			return true
 		}
 		a.na.StopServer()
@@ -283,6 +300,10 @@ func (a *App) GetLaunchOptions() *LaunchOptions {
 func (a *App) SetLaunchOptions(opts *LaunchOptions) {
 	if opts == nil {
 		return
+	}
+	if opts.BinPath == "" {
+		// preserve current bin path
+		opts.BinPath = a.conf.LaunchOptions.BinPath
 	}
 	a.conf.LaunchOptions = opts
 	a.saveLaunchOptions()
