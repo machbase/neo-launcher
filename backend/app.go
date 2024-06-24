@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -26,8 +27,9 @@ const (
 
 // App struct
 type App struct {
-	ctx context.Context
-	na  *NeoAgent
+	ctx     context.Context
+	na      *NeoAgent
+	naReady sync.WaitGroup
 
 	logBuffer      *bytes.Buffer
 	logBufferLimit int
@@ -59,35 +61,82 @@ type UIOptions struct {
 	Theme string `json:"theme"`
 }
 
+type LaunchOptions struct {
+	BinPath     string `json:"binPath,omitempty"`
+	Data        string `json:"data,omitempty"`
+	File        string `json:"file,omitempty"`
+	Host        string `json:"host,omitempty"`
+	LogLevel    string `json:"logLevel,omitempty"`
+	LogFilename string `json:"logFilename,omitempty"`
+	Experiment  bool   `json:"experiment,omitempty"`
+}
+
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) Startup(ctx context.Context) {
 	a.loadLaunchOptions()
 
-	var binPath string
-	// for development
-	// wails dev -appargs "<path to machbase-neo>"
-	if len(os.Args) > 1 {
-		binPath = os.Args[1]
+	a.naReady.Add(1)
+	defer a.naReady.Done()
+
+	var binPath = ""
+	if a.conf.LaunchOptions != nil {
+		binPath = a.conf.LaunchOptions.BinPath
+	} else {
+		// for development
+		// wails dev -appargs "<path to machbase-neo>"
+		if len(os.Args) > 1 {
+			binPath = os.Args[1]
+		}
 	}
+	cwdPath, _ := os.Executable()
+	if runtime.GOOS == "darwin" {
+		cwdPath = filepath.Join(filepath.Dir(cwdPath), "../../..")
+	} else {
+		cwdPath = filepath.Dir(cwdPath)
+	}
+	binName := "machbase-neo"
+	displayBinName := "machbase-neo executable file"
+	if runtime.GOOS == "windows" {
+		binName = "machbase-neo.exe"
+		displayBinName = "machbase-neo.exe file"
+	}
+select_bin_path:
 	binPath, err := getMachbaseNeoPath(binPath)
 	if err != nil {
-		binName := "machbase-neo executable file"
-		if runtime.GOOS == "windows" {
-			binName = "machbase-neo.exe file"
-		}
-		wailsRuntime.MessageDialog(ctx, wailsRuntime.MessageDialogOptions{
-			Type:    wailsRuntime.ErrorDialog,
-			Title:   "Error",
-			Message: fmt.Sprintf("Can not find %s. Please check the path.", binName),
-			Buttons: []string{"Quit"},
+		rsp, _ := wailsRuntime.MessageDialog(ctx, wailsRuntime.MessageDialogOptions{
+			Type:          wailsRuntime.ErrorDialog,
+			Title:         "Not found",
+			Message:       fmt.Sprintf("Can not find %s. Please check the path.", displayBinName),
+			Buttons:       []string{"Quit", "Select..."},
+			DefaultButton: "Quit",
+			CancelButton:  "Quit",
 		})
+		if rsp == "Select..." {
+			binPath, err = wailsRuntime.OpenFileDialog(ctx, wailsRuntime.OpenDialogOptions{
+				DefaultDirectory:           cwdPath,
+				DefaultFilename:            binName,
+				Title:                      "Select " + binName,
+				ResolvesAliases:            true,
+				TreatPackagesAsDirectories: false,
+			})
+			if err != nil {
+				wailsRuntime.MessageDialog(ctx, wailsRuntime.MessageDialogOptions{
+					Type:    wailsRuntime.ErrorDialog,
+					Title:   "Error",
+					Message: err.Error(),
+				})
+			}
+			goto select_bin_path
+		}
 		wailsRuntime.Quit(ctx)
 	}
-
+	if a.conf.LaunchOptions.BinPath != binPath {
+		a.conf.LaunchOptions.BinPath = binPath
+		a.saveLaunchOptions()
+	}
 	a.ctx = ctx
 	a.na = NewNeoAgent(
-		WithBinPath(binPath),
 		WithStdoutWriter(NewAppWriter(a, EVT_TERM)),
 		WithStderrWriter(NewAppWriter(a, EVT_TERM)),
 		WithLogWriter(NewAppWriter(a, EVT_LOG)),
@@ -176,6 +225,7 @@ func (a *App) OnDomReady(ctx context.Context) {
 }
 
 func (a *App) DoFrontendReady() {
+	a.naReady.Wait()
 	if a.na == nil {
 		return
 	}
@@ -191,10 +241,7 @@ func (a *App) DoFrontendReady() {
 }
 
 func (a *App) emitLaunchCmdWithFlags() {
-	v := &LaunchCmdWithFlags{
-		BinPath: a.na.binPath,
-		Flags:   a.makeLaunchFlags(),
-	}
+	v := a.makeLaunchFlags()
 	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), v)
 }
 
@@ -224,17 +271,9 @@ func (a *App) DoGetOS() string {
 }
 
 func (a *App) DoGetFlags() {
-	strFlags := strings.Join(a.makeLaunchFlags(), " ")
+	cmd := a.makeLaunchFlags()
+	strFlags := strings.Join(cmd.Flags, " ")
 	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), strFlags)
-}
-
-type LaunchOptions struct {
-	Data        string `json:"data,omitempty"`
-	File        string `json:"file,omitempty"`
-	Host        string `json:"host,omitempty"`
-	LogLevel    string `json:"logLevel,omitempty"`
-	LogFilename string `json:"logFilename,omitempty"`
-	Experiment  bool   `json:"experiment,omitempty"`
 }
 
 func (a *App) GetLaunchOptions() *LaunchOptions {
@@ -250,26 +289,29 @@ func (a *App) SetLaunchOptions(opts *LaunchOptions) {
 	a.emitLaunchCmdWithFlags()
 }
 
-func (a *App) makeLaunchFlags() []string {
-	ret := []string{}
+func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
+	ret := &LaunchCmdWithFlags{
+		BinPath: a.conf.LaunchOptions.BinPath,
+		Flags:   []string{},
+	}
 
 	if a.conf.LaunchOptions.Data != "" {
-		ret = append(ret, "--data", a.conf.LaunchOptions.Data)
+		ret.Flags = append(ret.Flags, "--data", a.conf.LaunchOptions.Data)
 	}
 	if a.conf.LaunchOptions.File != "" {
-		ret = append(ret, "--file", a.conf.LaunchOptions.File)
+		ret.Flags = append(ret.Flags, "--file", a.conf.LaunchOptions.File)
 	}
 	if a.conf.LaunchOptions.Host != "" && a.conf.LaunchOptions.Host != "127.0.0.1" {
-		ret = append(ret, "--host", a.conf.LaunchOptions.Host)
+		ret.Flags = append(ret.Flags, "--host", a.conf.LaunchOptions.Host)
 	}
 	if a.conf.LaunchOptions.LogLevel != "INFO" {
-		ret = append(ret, "--log-level", a.conf.LaunchOptions.LogLevel)
+		ret.Flags = append(ret.Flags, "--log-level", a.conf.LaunchOptions.LogLevel)
 	}
 	if a.conf.LaunchOptions.LogFilename != "" && a.conf.LaunchOptions.LogFilename != "-" {
-		ret = append(ret, "--log-filename", a.conf.LaunchOptions.LogFilename)
+		ret.Flags = append(ret.Flags, "--log-filename", a.conf.LaunchOptions.LogFilename)
 	}
 	if a.conf.LaunchOptions.Experiment {
-		ret = append(ret, "--experiment", "true")
+		ret.Flags = append(ret.Flags, "--experiment", "true")
 	}
 	return ret
 }

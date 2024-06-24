@@ -10,8 +10,7 @@ import (
 )
 
 type NeoAgent struct {
-	binPath         string
-	makeLaunchFlags func() []string
+	makeLaunchFlags func() *LaunchCmdWithFlags
 	stdoutWriter    io.Writer
 	stderrWriter    io.Writer
 	logWriter       io.Writer
@@ -42,12 +41,6 @@ func NewNeoAgent(opts ...Option) *NeoAgent {
 	return neoAgent
 }
 
-func WithBinPath(binPath string) Option {
-	return func(na *NeoAgent) {
-		na.binPath = binPath
-	}
-}
-
 func WithStdoutWriter(writer io.Writer) Option {
 	return func(na *NeoAgent) {
 		na.stdoutWriter = writer
@@ -72,7 +65,7 @@ func WithStateCallback(cb func(NeoState)) Option {
 	}
 }
 
-func WithLaunchFlags(fn func() []string) Option {
+func WithLaunchFlags(fn func() *LaunchCmdWithFlags) Option {
 	return func(na *NeoAgent) {
 		na.makeLaunchFlags = fn
 	}
@@ -105,16 +98,17 @@ func (na *NeoAgent) StartServer() {
 
 	pname := ""
 	pargs := []string{}
+	launch := na.makeLaunchFlags()
 	if runtime.GOOS == "windows" {
 		pname = "cmd.exe"
 		pargs = append(pargs, "/c")
-		pargs = append(pargs, na.binPath)
+		pargs = append(pargs, launch.BinPath)
 		pargs = append(pargs, "serve")
-		pargs = append(pargs, na.makeLaunchFlags()...)
+		pargs = append(pargs, launch.Flags...)
 	} else {
-		pname = na.binPath
+		pname = launch.BinPath
 		pargs = append(pargs, "serve")
-		pargs = append(pargs, na.makeLaunchFlags()...)
+		pargs = append(pargs, launch.Flags...)
 	}
 	cmd := exec.Command(pname, pargs...)
 	sysProcAttr(cmd)
@@ -155,10 +149,11 @@ func (na *NeoAgent) StopServer() {
 	if na.process != nil {
 		na.stateC <- NeoStopping
 		if runtime.GOOS == "windows" {
+			launch := na.makeLaunchFlags()
 			// On Windows, sending os.Interrupt to a process with os.Process.Signal is not implemented;
 			// it will return an error instead of sending a signal.
 			// so, this will not work => na.process.Signal(syscall.SIGINT)
-			cmd := exec.Command("cmd.exe", "/c", na.binPath, "shell", "--server", bestGuess.grpcAddr, "shutdown")
+			cmd := exec.Command("cmd.exe", "/c", launch.BinPath, "shell", "--server", bestGuess.grpcAddr, "shutdown")
 			sysProcAttr(cmd)
 
 			if na.stdoutWriter != nil {
@@ -189,13 +184,14 @@ func (na *NeoAgent) StopServer() {
 func (na *NeoAgent) Version() {
 	pname := ""
 	pargs := []string{}
+	launch := na.makeLaunchFlags()
 	if runtime.GOOS == "windows" {
 		pname = "cmd.exe"
 		pargs = append(pargs, "/c")
-		pargs = append(pargs, na.binPath)
+		pargs = append(pargs, launch.BinPath)
 		pargs = append(pargs, "version")
 	} else {
-		pname = na.binPath
+		pname = launch.BinPath
 		pargs = append(pargs, "version")
 	}
 	cmd := exec.Command(pname, pargs...)

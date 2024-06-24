@@ -1,6 +1,7 @@
 export namespace backend {
 	
 	export class LaunchOptions {
+	    binPath?: string;
 	    data?: string;
 	    file?: string;
 	    host?: string;
@@ -14,6 +15,7 @@ export namespace backend {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.binPath = source["binPath"];
 	        this.data = source["data"];
 	        this.file = source["file"];
 	        this.host = source["host"];
