@@ -38,6 +38,7 @@ type App struct {
 	conf                     Config
 	configFilename           string
 	disableConfigPersistence bool
+	enableLauncherLog        bool
 }
 
 // NewApp creates a new App application struct
@@ -193,6 +194,9 @@ func (a *App) Shutdown(ctx context.Context) {
 }
 
 func (a *App) launcherLog(text string) {
+	if !a.enableLauncherLog {
+		return
+	}
 	exe, err := os.Executable()
 	if err != nil {
 		fmt.Println("ERR", err.Error())
@@ -203,7 +207,7 @@ func (a *App) launcherLog(text string) {
 		dir = filepath.Join(filepath.Dir(exe), "../../..")
 	}
 
-	logPath := filepath.Join(dir, "launcher.log")
+	logPath := filepath.Join(dir, "neo-launcher.log")
 	fd, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("ERR", err.Error())
