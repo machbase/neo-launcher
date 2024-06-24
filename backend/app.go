@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -187,6 +188,27 @@ func (a *App) Shutdown(ctx context.Context) {
 	a.saveLaunchOptions()
 }
 
+func (a *App) launcherLog(text string) {
+	exe, err := os.Executable()
+	if err != nil {
+		fmt.Println("ERR", err.Error())
+		return
+	}
+	dir := filepath.Dir(exe)
+	if runtime.GOOS == "darwin" {
+		dir = filepath.Join(filepath.Dir(exe), "../../..")
+	}
+
+	logPath := filepath.Join(dir, "launcher.log")
+	fd, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("ERR", err.Error())
+		return
+	}
+	defer fd.Close()
+	fd.WriteString(time.Now().Format("2006-01-02 15:04:05 ") + text + "\n")
+}
+
 func NewAppWriter(app *App, evtType EventType) io.Writer {
 	return &AppWriter{
 		app:     app,
@@ -197,25 +219,48 @@ func NewAppWriter(app *App, evtType EventType) io.Writer {
 func (a *App) saveLaunchOptions() {
 	if !a.disableConfigPersistence {
 		a.conf.LaunchOptions = a.GetLaunchOptions()
-		content, _ := json.Marshal(a.conf)
-		os.WriteFile(a.configFilename, content, 0644)
+		content, err := json.Marshal(a.conf)
+		if err != nil {
+			a.launcherLog(err.Error())
+		} else {
+			a.launcherLog("write config: " + string(content))
+		}
+
+		a.launcherLog("save config: " + a.configFilename)
+		if err := os.WriteFile(a.configFilename, content, 0644); err != nil {
+			a.launcherLog(err.Error())
+		}
 	}
 }
 
 func (a *App) loadLaunchOptions() {
 	if confDir, err := os.UserConfigDir(); err != nil {
+		a.launcherLog(err.Error())
 		a.disableConfigPersistence = true
 	} else {
 		confDir = filepath.Join(confDir, "com.machbase.neo-launcher")
-		if _, err := os.Stat(confDir); os.IsNotExist(err) {
-			os.Mkdir(confDir, 0755)
+		a.launcherLog("config dir: " + confDir)
+		if _, err := os.Stat(confDir); err != nil && os.IsNotExist(err) {
+			if err := os.Mkdir(confDir, 0755); err != nil {
+				a.launcherLog(err.Error())
+				a.disableConfigPersistence = true
+				return
+			}
 		}
 		a.configFilename = filepath.Join(confDir, "config.json")
 		if _, err := os.Stat(a.configFilename); err == nil {
-			content, err := os.ReadFile(a.configFilename)
-			if err == nil {
-				json.Unmarshal(content, &a.conf)
+			if content, err := os.ReadFile(a.configFilename); err == nil {
+				if err := json.Unmarshal(content, &a.conf); err != nil {
+					a.launcherLog("parse config error: " + err.Error())
+				} else {
+					a.launcherLog("read config: " + string(content))
+				}
+			} else {
+				a.launcherLog("load config error: " + err.Error())
 			}
+		} else {
+			a.launcherLog("load config file error: " + err.Error())
+			a.disableConfigPersistence = true
 		}
 	}
 }
@@ -408,4 +453,27 @@ func guessBindAddress(args []string) guess {
 		httpAddr: fmt.Sprintf("%s:%s", host, httpPort),
 		grpcAddr: fmt.Sprintf("%s:%s", host, grpcPort),
 	}
+}
+
+func getMachbaseNeoPath(defaultPath string) (string, error) {
+	neoExePath := defaultPath
+	if neoExePath == "" {
+		selfPath, _ := os.Executable()
+		selfDir := filepath.Dir(selfPath)
+		if runtime.GOOS == "windows" {
+			neoExePath = filepath.Join(selfDir, "machbase-neo.exe")
+		} else {
+			neoExePath = filepath.Join(selfDir, "machbase-neo")
+		}
+	}
+
+	if stat, err := os.Stat(neoExePath); err != nil {
+		return "", err
+	} else {
+		if stat.IsDir() {
+			return "", os.ErrNotExist
+		}
+	}
+
+	return neoExePath, nil
 }
