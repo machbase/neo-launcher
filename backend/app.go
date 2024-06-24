@@ -118,9 +118,9 @@ select_bin_path:
 		if runtime.GOOS == "windows" {
 			msgLines := []string{
 				fmt.Sprintf("Can not find %s.", displayBinName),
-				"Do you want to find machbase-neo.exe manually or quit?",
+				"Do you want to find machbase-neo.exe manually or quit the launcher?",
 				"\t\"Yes\" to select manually",
-				"\t\"No\" to quit",
+				"\t\"No\" to quit the launcher",
 			}
 			dialogOpts.Message = strings.Join(msgLines, "\n")
 			dialogOpts.Buttons = []string{"Yes", "No"}
