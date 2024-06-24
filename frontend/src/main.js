@@ -97,7 +97,7 @@ window.runtime.EventsOn(EVT_FLAGS, (data) => {
     flags.value = data.flags.join(' ');
 
     let launchCmdWithFlags = document.getElementById('launchCmdWithFlags');
-    let fullCmd = data.binPath+' serve '+data.flags.join(' ');
+    let fullCmd = data.binPath + ' serve ' + data.flags.join(' ');
     launchCmdWithFlags.innerText = fullCmd;
 })
 window.runtime.EventsOn(EVT_STATE, (data) => {
@@ -252,23 +252,23 @@ window.onHideLauncherOptions = function () {
 }
 
 try {
-    openBrowserIcon = document.getElementById('openBrowserIcon');
+    const openBrowserIcon = document.getElementById('openBrowserIcon');
     App.DoGetOS().then((os) => {
         switch (os) {
             case "darwin":
-                openBrowserIcon.setAttribute('name', 'browser-safari');
+                openBrowserIcon.name = 'browser-safari';
                 break;
             case "windows":
-                openBrowserIcon.setAttribute('name', 'browser-edge');
+                openBrowserIcon.name = 'browser-edge';
                 break;
             default:
-                openBrowserIcon.setAttribute('name', 'browser-firefox');
+                openBrowserIcon.name = 'browser-firefox';
                 break;
         }
     })
 } catch (err) {
     console.log(err);
-    openBrowserIcon.setAttribute('name', 'browser-chrome');
+    openBrowserIcon.name = 'browser-chrome';
 }
 
 App.DoGetTheme().then((theme) => {
