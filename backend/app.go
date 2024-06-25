@@ -163,6 +163,7 @@ select_bin_path:
 		WithStdoutWriter(NewAppWriter(a, EVT_TERM)),
 		WithStderrWriter(NewAppWriter(a, EVT_TERM)),
 		WithLogWriter(NewAppWriter(a, EVT_LOG)),
+		WithNavelcordEnabled(true),
 		WithStateCallback(func(state NeoState) {
 			wailsRuntime.EventsEmit(a.ctx, string(EVT_STATE), state)
 		}),
