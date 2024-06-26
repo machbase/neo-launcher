@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -75,6 +76,8 @@ type LaunchOptions struct {
 	Host        string `json:"host,omitempty"`
 	LogLevel    string `json:"logLevel,omitempty"`
 	LogFilename string `json:"logFilename,omitempty"`
+	JwtAtExpire string `json:"jwtAtExpire,omitempty"`
+	JwtRtExpire string `json:"jwtRtExpire,omitempty"`
 	Experiment  bool   `json:"experiment,omitempty"`
 }
 
@@ -227,8 +230,8 @@ func NewAppWriter(app *App, evtType EventType) io.Writer {
 
 func (a *App) saveLaunchOptions() {
 	if !a.disableConfigPersistence {
-		a.conf.LaunchOptions = a.GetLaunchOptions()
-		content, err := json.Marshal(a.conf)
+		json.MarshalIndent(a.conf, "", "  ")
+		content, err := json.MarshalIndent(a.conf, "", "  ")
 		if err != nil {
 			a.launcherLog(err.Error())
 		} else {
@@ -248,7 +251,6 @@ func (a *App) loadLaunchOptions() {
 		a.disableConfigPersistence = true
 	} else {
 		confDir = filepath.Join(confDir, "com.machbase.neo-launcher")
-		a.launcherLog("config dir: " + confDir)
 		if _, err := os.Stat(confDir); err != nil && os.IsNotExist(err) {
 			if err := os.Mkdir(confDir, 0755); err != nil {
 				a.launcherLog(err.Error())
@@ -268,6 +270,17 @@ func (a *App) loadLaunchOptions() {
 				a.launcherLog("load config error: " + err.Error())
 			}
 		}
+	}
+}
+
+func (a *App) DoRevealConfig() {
+	if a.configFilename == "" {
+		return
+	}
+	if runtime.GOOS == "darwin" {
+		exec.Command("open", "-R", a.configFilename).Run()
+	} else if runtime.GOOS == "windows" {
+		exec.Command("explorer", "/select,", a.configFilename).Run()
 	}
 }
 
@@ -381,6 +394,12 @@ func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
 	}
 	if a.conf.LaunchOptions.LogFilename != "" && a.conf.LaunchOptions.LogFilename != "-" {
 		ret.Flags = append(ret.Flags, "--log-filename", a.conf.LaunchOptions.LogFilename)
+	}
+	if a.conf.LaunchOptions.JwtAtExpire != "" && a.conf.LaunchOptions.JwtAtExpire != "5m" {
+		ret.Flags = append(ret.Flags, "--jwt-at-expire", a.conf.LaunchOptions.JwtAtExpire)
+	}
+	if a.conf.LaunchOptions.JwtRtExpire != "" && a.conf.LaunchOptions.JwtRtExpire != "60m" && a.conf.LaunchOptions.JwtRtExpire != "1h" {
+		ret.Flags = append(ret.Flags, "--jwt-rt-expire", a.conf.LaunchOptions.JwtRtExpire)
 	}
 	if a.conf.LaunchOptions.Experiment {
 		ret.Flags = append(ret.Flags, "--experiment", "true")

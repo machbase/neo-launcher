@@ -169,6 +169,10 @@ window.appOpenBrowser = function () {
     App.DoOpenBrowser();
 };
 
+window.appRevealConfig = function () {
+    App.DoRevealConfig();
+};
+
 window.appCopyLog = function () {
     App.DoCopyLog();
 };
@@ -224,6 +228,12 @@ window.onShowLauncherOptions = function () {
                     case 'log-filename':
                         item.value = options.logFilename ? options.logFilename : '-';
                         break;
+                    case 'jwt-at-expire':
+                        item.value = options.jwtAtExpire ? options.jwtAtExpire : '5m';
+                        break;
+                    case 'jwt-rt-expire':
+                        item.value = options.jwtRtExpire ? options.jwtRtExpire : '60m';
+                        break;
                     case 'experiment':
                         item.checked = options.experiment
                         break;
@@ -243,6 +253,8 @@ window.onHideLauncherOptions = function () {
         host: drawer.querySelector(".item[name='host']").value,
         logLevel: drawer.querySelector(".item[name='log-level']").value,
         logFilename: drawer.querySelector(".item[name='log-filename']").value,
+        jwtAtExpire: drawer.querySelector(".item[name='jwt-at-expire']").value,
+        jwtRtExpire: drawer.querySelector(".item[name='jwt-rt-expire']").value,
         experiment: drawer.querySelector(".item[name='experiment']").checked,
     };
     App.SetLaunchOptions(options)

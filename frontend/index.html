@@ -47,7 +47,9 @@
                 </sl-button>
             </sl-button-group>
             <sl-input class="command-line-child" id="launchFlags"></sl-input>
-            <sl-visually-hidden><div id="launchCmdWithFlags"></div></sl-visually-hidden>
+            <sl-visually-hidden>
+                <div id="launchCmdWithFlags"></div>
+            </sl-visually-hidden>
             <sl-copy-button from="launchCmdWithFlags.innerText"
                 style="margin-left:0px; font-size:var(--sl-font-size-large); color:darkgray;"></sl-copy-button>
         </div>
@@ -84,7 +86,7 @@
             <sl-input label="--host" name="host" class="label-on-left item" help-text="-Listening network address"
                 placeholder="127.0.0.1" clearable></sl-input><br />
             <sl-details summary="Advanced options" style="margin-left:40px;">
-                <sl-select label="--log-level" name="log-level" class="label-on-left item" help-text="Log level"
+                <sl-select label="--log-level" name="log-level" class="label-on-left label-adv item" help-text="Log level"
                     value="INFO">
                     <sl-option value="TRACE">TRACE</sl-option>
                     <sl-option value="DEBUG">DEBUG</sl-option>
@@ -92,16 +94,26 @@
                     <sl-option value="WARN">WARN</sl-option>
                     <sl-option value="ERROR">ERROR</sl-option>
                 </sl-select><br />
-                <sl-input label="--log-filename" name="log-filename" class="label-on-left item"
+                <sl-input label="--log-filename" name="log-filename" class="label-on-left label-adv item"
                     help-text="Path to the log file" placeholder="- (default: stdout)" clearable></sl-input><br />
-                <sl-switch label="--experiment" name="experiment" class="label-on-left item" style="margin-left:10em;"
+                <sl-input label="--jwt-at-expire" name="jwt-at-expire" class="label-on-left label-adv item"
+                    help-text="JWT Access Token Expiration" placeholder="5m" clearable></sl-input><br />
+                <sl-input label="--jwt-rt-expire" name="jwt-rt-expire" class="label-on-left label-adv item"
+                    help-text="JWT Refresh Token Expiration" placeholder="60m" clearable></sl-input><br />
+                <sl-switch label="--experiment" name="experiment" class="label-on-left label-adv item" style="margin-left:10em;"
                     checked>Enable experiment features</sl-switch><br />
+                <br />
+                <sl-button variant="text" size="small" style="margin-left:10em;" onclick="appRevealConfig()">
+                    <sl-icon name="gear" label="Reveal config file"></sl-icon> Reveal config file
+                </sl-button>
             </sl-details>
         </form>
     </sl-drawer>
     <script>
         const drawer = document.getElementById('drawer-options');
-        drawer.addEventListener('sl-show', (e) => onShowLauncherOptions());
+        drawer.addEventListener('sl-show', (e) => {
+            onShowLauncherOptions();
+        });
         drawer.addEventListener('sl-request-close', (e) => {
             e.preventDefault();
             onHideLauncherOptions();

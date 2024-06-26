@@ -7,6 +7,8 @@ export namespace backend {
 	    host?: string;
 	    logLevel?: string;
 	    logFilename?: string;
+	    jwtAtExpire?: string;
+	    jwtRtExpire?: string;
 	    experiment?: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -21,6 +23,8 @@ export namespace backend {
 	        this.host = source["host"];
 	        this.logLevel = source["logLevel"];
 	        this.logFilename = source["logFilename"];
+	        this.jwtAtExpire = source["jwtAtExpire"];
+	        this.jwtRtExpire = source["jwtRtExpire"];
 	        this.experiment = source["experiment"];
 	    }
 	}

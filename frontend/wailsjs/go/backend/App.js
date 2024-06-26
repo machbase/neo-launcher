@@ -30,6 +30,10 @@ export function DoOpenBrowser() {
   return window['go']['backend']['App']['DoOpenBrowser']();
 }
 
+export function DoRevealConfig() {
+  return window['go']['backend']['App']['DoRevealConfig']();
+}
+
 export function DoSetTheme(arg1) {
   return window['go']['backend']['App']['DoSetTheme'](arg1);
 }

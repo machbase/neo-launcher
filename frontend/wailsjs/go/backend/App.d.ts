@@ -16,6 +16,8 @@ export function DoGetTheme():Promise<string>;
 
 export function DoOpenBrowser():Promise<void>;
 
+export function DoRevealConfig():Promise<void>;
+
 export function DoSetTheme(arg1:string):Promise<void>;
 
 export function DoStartServer():Promise<void>;
