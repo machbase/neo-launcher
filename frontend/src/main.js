@@ -169,12 +169,24 @@ window.appOpenBrowser = function () {
     App.DoOpenBrowser();
 };
 
+window.appRevealNeoBin = function () {
+    App.DoRevealNeoBin();
+}
+
 window.appRevealConfig = function () {
     App.DoRevealConfig();
 };
 
 window.appCopyLog = function () {
     App.DoCopyLog();
+};
+
+window.appSaveLog = function () {
+    App.DoSaveLog();
+};
+
+window.appClearLog = function () {
+    App.DoClearLog();
 };
 
 window.appGetProcessInfo = function () {

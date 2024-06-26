@@ -274,13 +274,21 @@ func (a *App) loadLaunchOptions() {
 }
 
 func (a *App) DoRevealConfig() {
-	if a.configFilename == "" {
+	a.revealFile(a.configFilename)
+}
+
+func (a *App) DoRevealNeoBin() {
+	a.revealFile(a.conf.LaunchOptions.BinPath)
+}
+
+func (a *App) revealFile(path string) {
+	if path == "" {
 		return
 	}
 	if runtime.GOOS == "darwin" {
-		exec.Command("open", "-R", a.configFilename).Run()
+		exec.Command("open", "-R", path).Run()
 	} else if runtime.GOOS == "windows" {
-		exec.Command("explorer", "/select,", a.configFilename).Run()
+		exec.Command("explorer", "/select,", path).Run()
 	}
 }
 
@@ -416,6 +424,16 @@ var regexpAnsi = regexp.MustCompile("[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\
 func (a *App) DoCopyLog() {
 	text := regexpAnsi.ReplaceAllString(a.logBuffer.String(), "")
 	wailsRuntime.ClipboardSetText(a.ctx, text)
+}
+
+func (a *App) DoClearLog() {
+	a.logBuffer.Reset()
+	wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "--clear--\r\n")
+}
+
+func (a *App) DoSaveLog() {
+	//text := regexpAnsi.ReplaceAllString(a.logBuffer.String(), "")
+	wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "--save--\r\n")
 }
 
 func (a *App) DoStartServer() {

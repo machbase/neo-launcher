@@ -12,6 +12,7 @@
         import '@shoelace-style/shoelace/dist/components/select/select.js';
         import '@shoelace-style/shoelace/dist/components/option/option.js';
         import '@shoelace-style/shoelace/dist/components/button/button.js';
+        import '@shoelace-style/shoelace/dist/components/divider/divider.js';
         import '@shoelace-style/shoelace/dist/components/icon/icon.js';
         import '@shoelace-style/shoelace/dist/components/input/input.js';
         import '@shoelace-style/shoelace/dist/components/copy-button/copy-button.js';
@@ -19,6 +20,9 @@
         import '@shoelace-style/shoelace/dist/components/drawer/drawer.js';
         import '@shoelace-style/shoelace/dist/components/details/details.js';
         import '@shoelace-style/shoelace/dist/components/switch/switch.js';
+        import '@shoelace-style/shoelace/dist/components/menu/menu.js';
+        import '@shoelace-style/shoelace/dist/components/menu-item/menu-item.js';
+        import '@shoelace-style/shoelace/dist/components/dropdown/dropdown.js';
         import '@shoelace-style/shoelace/dist/components/visually-hidden/visually-hidden.js';
         // Set the base path to the folder you copied Shoelace's assets to
         import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
@@ -67,9 +71,27 @@
                 <sl-button onclick="appOpenBrowser()" variant="default" size="small" id="openBrowserButton" disabled>
                     <sl-icon name="browser-edge" slot="prefix" id="openBrowserIcon"></sl-icon>Open browser
                 </sl-button>
-                <sl-button onclick="appCopyLog()" variant="default" size="small">
-                    <sl-icon name="copy" slot="prefix"></sl-icon>Copy log
-                </sl-button>
+                <sl-dropdown>
+                    <sl-button slot="trigger" size="small" caret>
+                        <sl-icon name="list" slot="prefix"></sl-icon>Log
+                    </sl-button>
+                    <sl-menu size="small" style="text-align: left;">
+                        <sl-menu-item value="copy-log" onclick="appCopyLog()" size="small">
+                            <sl-icon name="copy" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">Copy</span>
+                        </sl-menu-item>
+                        <sl-menu-item value="save-log" onclick="appSaveLog()" size="small">
+                            <sl-icon name="save" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">Save as...</span>
+                        </sl-menu-item>
+                        <sl-divider></sl-divider>
+                        <sl-menu-item value="clear-log" onclick="appClearLog()" size="small">
+                            <sl-icon name="x-square" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">Clear</span>
+                        </sl-menu-item>
+                    </sl-menu>
+                    </sl-button>
+                </sl-dropdown>
                 <sl-button onclick="toggleTheme()" size="small">
                     <sl-icon name="moon-fill" id="themeIcon"></sl-icon>
                 </sl-button>
@@ -86,8 +108,8 @@
             <sl-input label="--host" name="host" class="label-on-left item" help-text="-Listening network address"
                 placeholder="127.0.0.1" clearable></sl-input><br />
             <sl-details summary="Advanced options" style="margin-left:40px;">
-                <sl-select label="--log-level" name="log-level" class="label-on-left label-adv item" help-text="Log level"
-                    value="INFO">
+                <sl-select label="--log-level" name="log-level" class="label-on-left label-adv item"
+                    help-text="Log level" value="INFO">
                     <sl-option value="TRACE">TRACE</sl-option>
                     <sl-option value="DEBUG">DEBUG</sl-option>
                     <sl-option value="INFO">INFO</sl-option>
@@ -100,12 +122,17 @@
                     help-text="JWT Access Token Expiration" placeholder="5m" clearable></sl-input><br />
                 <sl-input label="--jwt-rt-expire" name="jwt-rt-expire" class="label-on-left label-adv item"
                     help-text="JWT Refresh Token Expiration" placeholder="60m" clearable></sl-input><br />
-                <sl-switch label="--experiment" name="experiment" class="label-on-left label-adv item" style="margin-left:10em;"
-                    checked>Enable experiment features</sl-switch><br />
+                <sl-switch label="--experiment" name="experiment" class="label-on-left label-adv item"
+                    style="margin-left:10em;" checked>Enable experiment features</sl-switch><br />
                 <br />
-                <sl-button variant="text" size="small" style="margin-left:10em;" onclick="appRevealConfig()">
-                    <sl-icon name="gear" label="Reveal config file"></sl-icon> Reveal config file
-                </sl-button>
+                <div style="text-align: right;">
+                    <sl-button variant="text" style="margin-left:1em;" onclick="appRevealNeoBin()">
+                        <sl-icon name="filetype-exe" label="Reveal machbase-neo"></sl-icon> Reveal machbase-neo
+                    </sl-button>
+                    <sl-button variant="text" style="margin-left:1em;" onclick="appRevealConfig()">
+                        <sl-icon name="filetype-json" label="Reveal config file"></sl-icon> Reveal config file
+                    </sl-button>
+                </div>
             </sl-details>
         </form>
     </sl-drawer>
