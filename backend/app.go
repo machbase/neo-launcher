@@ -462,17 +462,24 @@ func guessBindAddress(args []string) guess {
 }
 
 func getMachbaseNeoPath(defaultPath string) (string, error) {
-	neoExePath := defaultPath
-	if neoExePath == "" {
-		selfPath, _ := os.Executable()
+	var neoExePath string
+
+	// machbase-neo.exe in the same directory wins always
+	if selfPath, err := os.Executable(); err == nil {
 		selfDir := filepath.Dir(selfPath)
 		if runtime.GOOS == "windows" {
 			neoExePath = filepath.Join(selfDir, "machbase-neo.exe")
 		} else {
 			neoExePath = filepath.Join(selfDir, "machbase-neo")
 		}
+
+		if _, err := os.Stat(neoExePath); err == nil {
+			return neoExePath, nil
+		}
 	}
 
+	// otherwise, use the default path
+	neoExePath = defaultPath
 	if stat, err := os.Stat(neoExePath); err != nil {
 		return "", err
 	} else {
