@@ -46,15 +46,14 @@ type App struct {
 func NewApp() *App {
 	return &App{
 		logBuffer:      &bytes.Buffer{},
-		logBufferLimit: 16 * 1024,
+		logBufferLimit: 128 * 1024,
 		conf: Config{
 			UI: UIOptions{
 				Theme: "sl-theme-light",
 			},
 			LaunchOptions: &LaunchOptions{
-				Host:       "127.0.0.1",
-				LogLevel:   "INFO",
-				Experiment: false,
+				Host:     "127.0.0.1",
+				LogLevel: "INFO",
 			},
 		},
 	}
@@ -70,15 +69,19 @@ type UIOptions struct {
 }
 
 type LaunchOptions struct {
-	BinPath     string `json:"binPath,omitempty"`
-	Data        string `json:"data,omitempty"`
-	File        string `json:"file,omitempty"`
-	Host        string `json:"host,omitempty"`
-	LogLevel    string `json:"logLevel,omitempty"`
-	LogFilename string `json:"logFilename,omitempty"`
-	JwtAtExpire string `json:"jwtAtExpire,omitempty"`
-	JwtRtExpire string `json:"jwtRtExpire,omitempty"`
-	Experiment  bool   `json:"experiment,omitempty"`
+	BinPath             string `json:"binPath,omitempty"`
+	Data                string `json:"data,omitempty"`
+	File                string `json:"file,omitempty"`
+	Host                string `json:"host,omitempty"`
+	LogLevel            string `json:"logLevel,omitempty"`
+	LogFilename         string `json:"logFilename,omitempty"`
+	HttpDebug           bool   `json:"httpDebug,omitempty"`
+	HttpEnableTokenAuth bool   `json:"httpEnableTokenAuth,omitempty"`
+	MqttEnableTokenAuth bool   `json:"mqttEnableTokenAuth,omitempty"`
+	MqttEnableTls       bool   `json:"mqttEnableTls,omitempty"`
+	JwtAtExpire         string `json:"jwtAtExpire,omitempty"`
+	JwtRtExpire         string `json:"jwtRtExpire,omitempty"`
+	Experiment          bool   `json:"experiment,omitempty"`
 }
 
 // startup is called when the app starts. The context is saved
@@ -403,6 +406,18 @@ func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
 	if a.conf.LaunchOptions.LogFilename != "" && a.conf.LaunchOptions.LogFilename != "-" {
 		ret.Flags = append(ret.Flags, "--log-filename", a.conf.LaunchOptions.LogFilename)
 	}
+	if a.conf.LaunchOptions.HttpDebug {
+		ret.Flags = append(ret.Flags, "--http-debug", "true")
+	}
+	if a.conf.LaunchOptions.HttpEnableTokenAuth {
+		ret.Flags = append(ret.Flags, "--http-enable-token-auth", "true")
+	}
+	if a.conf.LaunchOptions.MqttEnableTokenAuth {
+		ret.Flags = append(ret.Flags, "--mqtt-enable-token-auth", "true")
+	}
+	if a.conf.LaunchOptions.MqttEnableTls {
+		ret.Flags = append(ret.Flags, "--mqtt-enable-tls", "true")
+	}
 	if a.conf.LaunchOptions.JwtAtExpire != "" && a.conf.LaunchOptions.JwtAtExpire != "5m" {
 		ret.Flags = append(ret.Flags, "--jwt-at-expire", a.conf.LaunchOptions.JwtAtExpire)
 	}
@@ -428,12 +443,28 @@ func (a *App) DoCopyLog() {
 
 func (a *App) DoClearLog() {
 	a.logBuffer.Reset()
-	wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "--clear--\r\n")
+	wailsRuntime.EventsEmit(a.ctx, string(EVT_TERM), `\033c`)
 }
 
 func (a *App) DoSaveLog() {
-	//text := regexpAnsi.ReplaceAllString(a.logBuffer.String(), "")
-	wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "--save--\r\n")
+	filename := fmt.Sprintf("machbase-neo-%s.txt", time.Now().Format("20060102-150405"))
+	path, err := wailsRuntime.SaveFileDialog(a.ctx, wailsRuntime.SaveDialogOptions{
+		DefaultFilename:      filename,
+		Title:                "Save log as...",
+		Filters:              []wailsRuntime.FileFilter{{DisplayName: "*.txt", Pattern: "*.txt"}},
+		CanCreateDirectories: true,
+	})
+	if err != nil {
+		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), err.Error())
+		return
+	}
+	if path == "" {
+		return
+	}
+	text := regexpAnsi.ReplaceAllString(a.logBuffer.String(), "")
+	if err := os.WriteFile(path, []byte(text), 0644); err != nil {
+		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), err.Error())
+	}
 }
 
 func (a *App) DoStartServer() {

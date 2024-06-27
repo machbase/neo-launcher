@@ -87,6 +87,10 @@ const STATE_STOPPING = 'stopping';
 const STATE_STOPPED = 'not running';
 
 window.runtime.EventsOn(EVT_TERM, (data) => {
+    if (data === '\\033c') {
+        term.clear();
+        return;
+    }
     term.write(data);
 })
 window.runtime.EventsOn(EVT_LOG, (data) => {
@@ -240,6 +244,18 @@ window.onShowLauncherOptions = function () {
                     case 'log-filename':
                         item.value = options.logFilename ? options.logFilename : '-';
                         break;
+                    case 'http-debug':
+                        item.value = options.httpDebug ? 'true' : 'false';
+                        break;
+                    case 'http-enable-token-auth':
+                        item.value = options.httpEnableTokenAuth ? 'true' : 'false';
+                        break;
+                    case 'mqtt-enable-token-auth':
+                        item.value = options.mqttEnableTokenAuth ? 'true' : 'false';
+                        break;
+                    case 'mqtt-enable-tls':
+                        item.value = options.mqttEnableTls ? 'true' : 'false';
+                        break;
                     case 'jwt-at-expire':
                         item.value = options.jwtAtExpire ? options.jwtAtExpire : '5m';
                         break;
@@ -247,7 +263,7 @@ window.onShowLauncherOptions = function () {
                         item.value = options.jwtRtExpire ? options.jwtRtExpire : '60m';
                         break;
                     case 'experiment':
-                        item.checked = options.experiment
+                        item.value = options.experiment ? 'true' : 'false';
                         break;
                     default:
                         console.log('Unknown option: ' + item.getAttribute('name'));
@@ -265,9 +281,13 @@ window.onHideLauncherOptions = function () {
         host: drawer.querySelector(".item[name='host']").value,
         logLevel: drawer.querySelector(".item[name='log-level']").value,
         logFilename: drawer.querySelector(".item[name='log-filename']").value,
+        httpDebug: drawer.querySelector(".item[name='http-debug']").value == 'true',
+        httpEnableTokenAuth: drawer.querySelector(".item[name='http-enable-token-auth']").value == 'true',
+        mqttEnableTokenAuth: drawer.querySelector(".item[name='mqtt-enable-token-auth']").value == 'true',
+        mqttEnableTls: drawer.querySelector(".item[name='mqtt-enable-tls']").value == 'true',
         jwtAtExpire: drawer.querySelector(".item[name='jwt-at-expire']").value,
         jwtRtExpire: drawer.querySelector(".item[name='jwt-rt-expire']").value,
-        experiment: drawer.querySelector(".item[name='experiment']").checked,
+        experiment: drawer.querySelector(".item[name='experiment']").value == 'true',
     };
     App.SetLaunchOptions(options)
         .then(() => {

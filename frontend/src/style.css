@@ -62,12 +62,12 @@ nav {
 }
 
 .label-on-left {
-    --label-width: 13.30rem;
+    --label-width: 7.30rem;
     --gap-width: 1rem;
 }
 
 .label-adv {
-    --label-width: 9.75rem;
+    --label-width: 15.75rem;
 }
 
 .label-on-left + .label-on-left {
