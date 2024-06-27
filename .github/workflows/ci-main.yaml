@@ -122,7 +122,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
             repo_token: ${{ secrets.GIT_PASS }}
-            file: build/bin/neo-launcher.exe
+            file: build/bin/neo-launcher.zip
             asset_name: neo-launcher-$tag-windows-amd64.zip
             repo_name: machbase/neo-launcher
             prerelease: true
