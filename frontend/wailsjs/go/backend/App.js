@@ -18,6 +18,10 @@ export function DoGetFlags() {
   return window['go']['backend']['App']['DoGetFlags']();
 }
 
+export function DoGetLaunchOptions() {
+  return window['go']['backend']['App']['DoGetLaunchOptions']();
+}
+
 export function DoGetOS() {
   return window['go']['backend']['App']['DoGetOS']();
 }
@@ -46,6 +50,10 @@ export function DoSaveLog() {
   return window['go']['backend']['App']['DoSaveLog']();
 }
 
+export function DoSetLaunchOptions(arg1) {
+  return window['go']['backend']['App']['DoSetLaunchOptions'](arg1);
+}
+
 export function DoSetTheme(arg1) {
   return window['go']['backend']['App']['DoSetTheme'](arg1);
 }
@@ -60,12 +68,4 @@ export function DoStopServer() {
 
 export function DoVersion() {
   return window['go']['backend']['App']['DoVersion']();
-}
-
-export function GetLaunchOptions() {
-  return window['go']['backend']['App']['GetLaunchOptions']();
-}
-
-export function SetLaunchOptions(arg1) {
-  return window['go']['backend']['App']['SetLaunchOptions'](arg1);
 }

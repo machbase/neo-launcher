@@ -10,6 +10,8 @@ export function DoFrontendReady():Promise<void>;
 
 export function DoGetFlags():Promise<void>;
 
+export function DoGetLaunchOptions():Promise<backend.LaunchOptions>;
+
 export function DoGetOS():Promise<string>;
 
 export function DoGetProcessInfo():Promise<string>;
@@ -24,6 +26,8 @@ export function DoRevealNeoBin():Promise<void>;
 
 export function DoSaveLog():Promise<void>;
 
+export function DoSetLaunchOptions(arg1:backend.LaunchOptions):Promise<void>;
+
 export function DoSetTheme(arg1:string):Promise<void>;
 
 export function DoStartServer():Promise<void>;
@@ -31,7 +35,3 @@ export function DoStartServer():Promise<void>;
 export function DoStopServer():Promise<void>;
 
 export function DoVersion():Promise<void>;
-
-export function GetLaunchOptions():Promise<backend.LaunchOptions>;
-
-export function SetLaunchOptions(arg1:backend.LaunchOptions):Promise<void>;

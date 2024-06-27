@@ -368,11 +368,11 @@ func (a *App) DoGetFlags() {
 	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), strFlags)
 }
 
-func (a *App) GetLaunchOptions() *LaunchOptions {
+func (a *App) DoGetLaunchOptions() *LaunchOptions {
 	return a.conf.LaunchOptions
 }
 
-func (a *App) SetLaunchOptions(opts *LaunchOptions) {
+func (a *App) DoSetLaunchOptions(opts *LaunchOptions) {
 	if opts == nil {
 		return
 	}

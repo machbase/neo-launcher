@@ -225,7 +225,7 @@ window.toggleTheme = function () {
 
 window.onShowLauncherOptions = function () {
     const drawer = document.getElementById('drawer-options');
-    App.GetLaunchOptions().then((options) => {
+    App.DoGetLaunchOptions().then((options) => {
         drawer.querySelectorAll(".item")
             .forEach((item) => {
                 switch (item.getAttribute('name')) {
@@ -289,7 +289,7 @@ window.onHideLauncherOptions = function () {
         jwtRtExpire: drawer.querySelector(".item[name='jwt-rt-expire']").value,
         experiment: drawer.querySelector(".item[name='experiment']").value == 'true',
     };
-    App.SetLaunchOptions(options)
+    App.DoSetLaunchOptions(options)
         .then(() => {
             drawer.hide()
         })
