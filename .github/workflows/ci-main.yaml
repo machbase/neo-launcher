@@ -114,13 +114,16 @@ jobs:
           recursive: false
           files: |
             neo-launcher.exe
+      - name: Archive
+        shell: powershell
+        run: Compress-Archive -Path build/bin/neo-launcher.exe -DestinationPath build/bin/neo-launcher.zip
       - name: Release files
         uses: svenstaro/upload-release-action@v2
         if: startsWith(github.ref, 'refs/tags/v')
         with:
             repo_token: ${{ secrets.GIT_PASS }}
             file: build/bin/neo-launcher.exe
-            asset_name: neo-launcher-$tag-windows-amd64.exe
+            asset_name: neo-launcher-$tag-windows-amd64.zip
             repo_name: machbase/neo-launcher
             prerelease: true
             tag: ${{ github.ref }}
@@ -131,7 +134,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: neo-launcher-snapshot-windows-amd64
-          path: build/bin/neo-launcher.exe
+          path: build/bin/neo-launcher.zip
           retention-days: 5
          
 

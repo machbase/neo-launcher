@@ -535,6 +535,10 @@ func getMachbaseNeoPath(defaultPath string) (string, error) {
 	// machbase-neo.exe in the same directory wins always
 	if selfPath, err := os.Executable(); err == nil {
 		selfDir := filepath.Dir(selfPath)
+		if runtime.GOOS == "darwin" {
+			selfDir = filepath.Join(selfDir, "../../..")
+		}
+
 		if runtime.GOOS == "windows" {
 			neoExePath = filepath.Join(selfDir, "machbase-neo.exe")
 		} else {
