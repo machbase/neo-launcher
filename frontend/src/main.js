@@ -193,6 +193,27 @@ window.appClearLog = function () {
     App.DoClearLog();
 };
 
+window.appSelectDirectory = function(input) {
+    let cur = input.value;
+    App.DoSelectDirectory(cur)
+    .then((dir) => {
+        input.value = dir;
+    })
+    .catch((err) =>{
+        console.log(err);
+    })
+}
+
+window.appSelectRecentFileDirectory = function(input) {
+    // TODO
+    App.DoGetRecentDirList()
+}
+
+window.appSelectRecentDataDirectory = function(input) {
+    // TODO
+    App.DoGetRecentFileList()
+}
+
 window.appGetProcessInfo = function () {
     App.DoGetProcessInfo();
 }

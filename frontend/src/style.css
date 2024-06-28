@@ -51,14 +51,14 @@ nav {
     background-color: black;
     height: clac(100vh -220px);
     margin-top: 5px;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    padding: 5px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 5px;
+    padding: 0px;
     position: fixed;
     top: 50px;
-    width: calc(100% - 60px);
-    height: calc(100% - 120px);
+    width: calc(100% - 25px);
+    height: calc(100% - 110px);
 }
 
 .label-on-left {

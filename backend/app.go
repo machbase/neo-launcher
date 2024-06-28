@@ -65,7 +65,9 @@ type Config struct {
 }
 
 type UIOptions struct {
-	Theme string `json:"theme"`
+	Theme          string   `json:"theme"`
+	RecentDirList  []string `json:"recentDirList,omitempty"`
+	RecentFileList []string `json:"recentFileList,omitempty"`
 }
 
 type LaunchOptions struct {
@@ -354,7 +356,7 @@ func (a *App) DoGetProcessInfo() string {
 	}
 	out, _ := json.Marshal(ret)
 	result := string(out)
-	wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), result)
+	wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), result+"\r\n")
 	return result
 }
 
@@ -366,6 +368,24 @@ func (a *App) DoGetFlags() {
 	cmd := a.makeLaunchFlags()
 	strFlags := strings.Join(cmd.Flags, " ")
 	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), strFlags)
+}
+
+const historyLimit = 10
+
+func addHistory(hist []string, item string) []string {
+	for i, h := range hist {
+		if h == item {
+			if i == 0 {
+				return hist
+			}
+			hist = append(hist[:i], hist[i+1:]...)
+			break
+		}
+	}
+	if len(hist) >= historyLimit {
+		hist = hist[:historyLimit-1]
+	}
+	return append([]string{item}, hist...)
 }
 
 func (a *App) DoGetLaunchOptions() *LaunchOptions {
@@ -380,9 +400,23 @@ func (a *App) DoSetLaunchOptions(opts *LaunchOptions) {
 		// preserve current bin path
 		opts.BinPath = a.conf.LaunchOptions.BinPath
 	}
+	if path := opts.Data; path != "" {
+		a.conf.UI.RecentDirList = addHistory(a.conf.UI.RecentDirList, path)
+	}
+	if path := opts.File; path != "" {
+		a.conf.UI.RecentFileList = addHistory(a.conf.UI.RecentFileList, path)
+	}
 	a.conf.LaunchOptions = opts
 	a.saveLaunchOptions()
 	a.emitLaunchCmdWithFlags()
+}
+
+func (a *App) DoGetRecentDirList() []string {
+	return a.conf.UI.RecentDirList
+}
+
+func (a *App) DoGetRecentFileList() []string {
+	return a.conf.UI.RecentFileList
 }
 
 func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
@@ -465,6 +499,19 @@ func (a *App) DoSaveLog() {
 	if err := os.WriteFile(path, []byte(text), 0644); err != nil {
 		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), err.Error())
 	}
+}
+
+func (a *App) DoSelectDirectory(org string) string {
+	opts := wailsRuntime.OpenDialogOptions{
+		DefaultDirectory:     org,
+		Title:                "Select directory",
+		CanCreateDirectories: true,
+	}
+	path, err := wailsRuntime.OpenDirectoryDialog(a.ctx, opts)
+	if err != nil || path == "" {
+		return org
+	}
+	return path
 }
 
 func (a *App) DoStartServer() {

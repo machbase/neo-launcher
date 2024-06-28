@@ -16,6 +16,10 @@ export function DoGetOS():Promise<string>;
 
 export function DoGetProcessInfo():Promise<string>;
 
+export function DoGetRecentDirList():Promise<Array<string>>;
+
+export function DoGetRecentFileList():Promise<Array<string>>;
+
 export function DoGetTheme():Promise<string>;
 
 export function DoOpenBrowser():Promise<void>;
@@ -25,6 +29,8 @@ export function DoRevealConfig():Promise<void>;
 export function DoRevealNeoBin():Promise<void>;
 
 export function DoSaveLog():Promise<void>;
+
+export function DoSelectDirectory(arg1:string):Promise<string>;
 
 export function DoSetLaunchOptions(arg1:backend.LaunchOptions):Promise<void>;
 

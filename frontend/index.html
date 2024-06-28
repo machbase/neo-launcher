@@ -12,6 +12,7 @@
         import '@shoelace-style/shoelace/dist/components/select/select.js';
         import '@shoelace-style/shoelace/dist/components/option/option.js';
         import '@shoelace-style/shoelace/dist/components/button/button.js';
+        import '@shoelace-style/shoelace/dist/components/button-group/button-group.js';
         import '@shoelace-style/shoelace/dist/components/divider/divider.js';
         import '@shoelace-style/shoelace/dist/components/icon/icon.js';
         import '@shoelace-style/shoelace/dist/components/input/input.js';
@@ -43,12 +44,10 @@
 <body>
     <nav>
         <div class="button-group-toolbar command-line" style="flex:1;">
-            <sl-button-group>
-                <sl-button onclick="appStartServer()" class="command-line-child" id="launchButton">
-                    <sl-icon name="rocket-takeoff" slot="prefix" id="launchIcon"></sl-icon>
-                    <div id="launchText">machbase-neo serve</div>
-                </sl-button>
-            </sl-button-group>
+            <sl-button onclick="appStartServer()" class="command-line-child" id="launchButton" style="max-width: 200px;">
+                <sl-icon name="rocket-takeoff" slot="prefix" id="launchIcon"></sl-icon>
+                <div id="launchText">machbase-neo serve</div>
+            </sl-button>
             <sl-input class="command-line-child" id="launchFlags"></sl-input>
             <sl-visually-hidden>
                 <div id="launchCmdWithFlags"></div>
@@ -66,7 +65,7 @@
                     <div id="stateText">initializing...</div>
                 </sl-button>
             </div>
-            <sl-button-group class="status-line-child" style="text-align: right;">
+            <div class="status-line-child" style="text-align: right;">
                 <sl-button onclick="appOpenBrowser()" variant="default" size="small" id="openBrowserButton" disabled>
                     <sl-icon name="browser-edge" slot="prefix" id="openBrowserIcon"></sl-icon>Open browser
                 </sl-button>
@@ -94,18 +93,33 @@
                 <sl-button onclick="toggleTheme()" size="small">
                     <sl-icon name="moon-fill" id="themeIcon"></sl-icon>
                 </sl-button>
-            </sl-button-group>
+            </div>
         </div>
     </nav>
     <script src="./src/main.js" type="module"></script>
-    <sl-drawer label="Launcher Options" placement="top" id="drawer-options" style="--size:510px;">
+    <sl-drawer label="Launcher Options" placement="top" id="drawer-options" style="--size:80vh;">
         <form class="input-validation-required">
-            <sl-input label="--data" name="data" class="label-on-left item" help-text="Path to the database"
-                clearable></sl-input><br />
-            <sl-input label="--file" name="file" class="label-on-left item"
-                help-text="Path to the directory of script files" clearable></sl-input><br />
+            <sl-input label="--data" name="data" class="label-on-left item" clearable
+                help-text="Path to the database directory">
+                <sl-icon-button name="folder-fill" slot="suffix"
+                    onclick="appSelectDirectory(document.querySelector('sl-input[name=data]'))"
+                    style="color:#52525a;"></sl-icon-button>
+            </sl-input><br />
+            <sl-input label="--file" name="file" class="label-on-left item" clearable
+                help-text="Path to the directory of script files">
+                <sl-icon-button name="folder-fill" slot="suffix"
+                    onclick="appSelectDirectory(document.querySelector('sl-input[name=file]'))"
+                    style="color:#52525a;"></sl-icon-button>
+                <!-- 
+                        <sl-button-group slot="suffix">
+                        <sl-icon-button name="chevron-down"
+                        onclick="appSelectRecentFileDirectory(document.querySelector('sl-input[name=file]'))"
+                        style="color:#52525a;"></sl-icon-button> 
+                        </sl-button-group>
+                        -->
+            </sl-input><br />
             <sl-input label="--host" name="host" class="label-on-left item" help-text="Listening network address"
-                placeholder="127.0.0.1" clearable></sl-input><br />
+                placeholder="127.0.0.1"></sl-input><br />
             <sl-details summary="Advanced options" style="margin-left:40px;">
                 <sl-select label="--log-level" name="log-level" class="label-on-left label-adv item"
                     help-text="Log level" value="INFO">

@@ -30,6 +30,14 @@ export function DoGetProcessInfo() {
   return window['go']['backend']['App']['DoGetProcessInfo']();
 }
 
+export function DoGetRecentDirList() {
+  return window['go']['backend']['App']['DoGetRecentDirList']();
+}
+
+export function DoGetRecentFileList() {
+  return window['go']['backend']['App']['DoGetRecentFileList']();
+}
+
 export function DoGetTheme() {
   return window['go']['backend']['App']['DoGetTheme']();
 }
@@ -48,6 +56,10 @@ export function DoRevealNeoBin() {
 
 export function DoSaveLog() {
   return window['go']['backend']['App']['DoSaveLog']();
+}
+
+export function DoSelectDirectory(arg1) {
+  return window['go']['backend']['App']['DoSelectDirectory'](arg1);
 }
 
 export function DoSetLaunchOptions(arg1) {
