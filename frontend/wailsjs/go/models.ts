@@ -42,6 +42,7 @@ export namespace backend {
 	    table: string;
 	    inputCPU: boolean;
 	    inputMem: boolean;
+	    outputFile?: string;
 	    pid: number;
 	    binPath?: string;
 	
@@ -56,6 +57,7 @@ export namespace backend {
 	        this.table = source["table"];
 	        this.inputCPU = source["inputCPU"];
 	        this.inputMem = source["inputMem"];
+	        this.outputFile = source["outputFile"];
 	        this.pid = source["pid"];
 	        this.binPath = source["binPath"];
 	    }
