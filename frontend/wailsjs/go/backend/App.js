@@ -22,6 +22,10 @@ export function DoGetLaunchOptions() {
   return window['go']['backend']['App']['DoGetLaunchOptions']();
 }
 
+export function DoGetNeoCatLauncher() {
+  return window['go']['backend']['App']['DoGetNeoCatLauncher']();
+}
+
 export function DoGetOS() {
   return window['go']['backend']['App']['DoGetOS']();
 }
@@ -66,12 +70,24 @@ export function DoSetLaunchOptions(arg1) {
   return window['go']['backend']['App']['DoSetLaunchOptions'](arg1);
 }
 
+export function DoSetNeoCatLauncher(arg1) {
+  return window['go']['backend']['App']['DoSetNeoCatLauncher'](arg1);
+}
+
 export function DoSetTheme(arg1) {
   return window['go']['backend']['App']['DoSetTheme'](arg1);
 }
 
+export function DoStartNeoCat() {
+  return window['go']['backend']['App']['DoStartNeoCat']();
+}
+
 export function DoStartServer() {
   return window['go']['backend']['App']['DoStartServer']();
+}
+
+export function DoStopNeoCat() {
+  return window['go']['backend']['App']['DoStopNeoCat']();
 }
 
 export function DoStopServer() {
@@ -80,4 +96,8 @@ export function DoStopServer() {
 
 export function DoVersion() {
   return window['go']['backend']['App']['DoVersion']();
+}
+
+export function NewLogWriter() {
+  return window['go']['backend']['App']['NewLogWriter']();
 }

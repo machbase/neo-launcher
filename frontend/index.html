@@ -23,6 +23,8 @@
         import '@shoelace-style/shoelace/dist/components/menu/menu.js';
         import '@shoelace-style/shoelace/dist/components/menu-item/menu-item.js';
         import '@shoelace-style/shoelace/dist/components/dropdown/dropdown.js';
+        import '@shoelace-style/shoelace/dist/components/badge/badge.js';
+        import '@shoelace-style/shoelace/dist/components/dialog/dialog.js';
         import '@shoelace-style/shoelace/dist/components/visually-hidden/visually-hidden.js';
         // Set the base path to the folder you copied Shoelace's assets to
         import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
@@ -44,7 +46,8 @@
 <body>
     <nav>
         <div class="button-group-toolbar command-line" style="flex:1;">
-            <sl-button onclick="appStartServer()" class="command-line-child" id="launchButton" style="max-width: 200px;">
+            <sl-button onclick="appStartServer()" class="command-line-child" id="launchButton"
+                style="max-width: 200px;">
                 <sl-icon name="rocket-takeoff" slot="prefix" id="launchIcon"></sl-icon>
                 <div id="launchText">machbase-neo serve</div>
             </sl-button>
@@ -65,10 +68,57 @@
                     <div id="stateText">initializing...</div>
                 </sl-button>
             </div>
-            <div class="status-line-child" style="text-align: right;">
+            <div class="status-line-child" style="text-align:right; height:1rem">
                 <sl-button onclick="appOpenBrowser()" variant="default" size="small" id="openBrowserButton" disabled>
                     <sl-icon name="browser-edge" slot="prefix" id="openBrowserIcon"></sl-icon>Open browser
                 </sl-button>
+                <sl-divider vertical></sl-divider>
+                <sl-dropdown id="neocat-menu">
+                    <sl-button slot="trigger" size="small" caret>
+                        <sl-icon name="broadcast" slot="prefix"></sl-icon>neocat
+                    </sl-button>
+                    <sl-menu size="small" style="text-align: left;">
+                        <sl-menu-item id="play" size="small">
+                            <sl-icon id="play-btn" name="play-btn" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);" id="play-text">Start</span>
+                        </sl-menu-item>
+                        <sl-menu-item id="table">
+                            <sl-icon name="database" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">To Table
+                                <sl-badge slot="suffix" variant="primary" pill id="table-name"></sl-badge>
+                            </span>
+                        </sl-menu-item>
+                        <sl-menu-item>
+                            <sl-icon name="stopwatch" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">Interval&nbsp;&nbsp;
+                                <sl-badge slot="suffix" variant="primary" pill id="intervalBadge">30s</sl-badge>
+                            </span>
+                            <sl-menu slot="submenu">
+                                <sl-menu-item id="interval-1s"><span
+                                        style="font-size: var(--sl-font-size-x-small);">1s</span></sl-menu-item>
+                                <sl-menu-item id="interval-5s"><span
+                                        style="font-size: var(--sl-font-size-x-small);">5s</span></sl-menu-item>
+                                <sl-menu-item id="interval-15s"><span
+                                        style="font-size: var(--sl-font-size-x-small);">15s</span></sl-menu-item>
+                                <sl-menu-item id="interval-30s"><span
+                                        style="font-size: var(--sl-font-size-x-small);">30s</span></sl-menu-item>
+                            </sl-menu>
+                        </sl-menu-item>
+                        <sl-divider></sl-divider>
+                        <sl-menu-item id="input-cpu" size="small" type="checkbox" checked>
+                            <sl-icon name="cpu" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">CPU Usage</span>
+                        </sl-menu-item>
+                        <sl-menu-item id="input-mem" size="small" type="checkbox" checked>
+                            <sl-icon name="memory" slot="prefix" size="small"></sl-icon>
+                            <span style="font-size: var(--sl-font-size-x-small);">Memory Usage</span>
+                        </sl-menu-item>
+                    </sl-menu>
+                </sl-dropdown>
+                <sl-dialog id="neocat-table-dialog" label="Which table to write data?" class="dialog-focus">
+                    <sl-input id="table-input" autofocus placeholder="TABLE_NAME"></sl-input>
+                    <sl-button id="table-close" slot="footer" variant="primary">Close</sl-button>
+                </sl-dialog>
                 <sl-dropdown>
                     <sl-button slot="trigger" size="small" caret>
                         <sl-icon name="list" slot="prefix"></sl-icon>Log
@@ -90,6 +140,7 @@
                     </sl-menu>
                     </sl-button>
                 </sl-dropdown>
+                <sl-divider vertical></sl-divider>
                 <sl-button onclick="toggleTheme()" size="small">
                     <sl-icon name="moon-fill" id="themeIcon"></sl-icon>
                 </sl-button>
@@ -194,6 +245,73 @@
         } catch (e) {
             console.log(e);
         }
+
+        const neocatMenu = document.getElementById('neocat-menu');
+
+        neocatMenu.addEventListener('sl-show', (e) => {
+            appGetNeoCatLauncher().then((vo) => {
+                console.log('neocat', vo);
+                if (vo == null || vo.binPath === '') {
+                    neocatMenu.querySelector('#play').disabled = true
+                } else {
+                    if (vo.pid == 0) {
+                        neocatMenu.querySelector('#play-text').innerHTML = 'Start';
+                        neocatMenu.querySelector('#play-btn').setAttribute('name', 'play-btn');
+                        neocatMenu.querySelector('#play-btn').setAttribute('style', 'color:var(--sl-color-neutral-800);');
+                        neocatMenu.querySelector('#play').onclick = (() => {
+                            console.log('start');
+                            appStartNeoCatLauncher()
+                        })
+                    } else {
+                        neocatMenu.querySelector('#play-text').innerHTML = 'Stop';
+                        neocatMenu.querySelector('#play-btn').setAttribute('name', 'stop-btn');
+                        neocatMenu.querySelector('#play-btn').setAttribute('style', 'color:var(--sl-color-neutral-800);');
+                        neocatMenu.querySelector('#play').onclick = (() => {
+                            console.log('stop');
+                            appStopNeoCatLauncher()
+                        })
+                    }
+                }
+                neocatMenu.querySelector('#intervalBadge').innerHTML = vo.interval;
+                neocatMenu.querySelector('#interval-1s').onclick = (() => {
+                    vo.interval = '1s';
+                    appSetNeoCatLauncher(vo)
+                })
+                neocatMenu.querySelector('#interval-5s').onclick = (() => {
+                    vo.interval = '5s';
+                    appSetNeoCatLauncher(vo)
+                })
+                neocatMenu.querySelector('#interval-15s').onclick = (() => {
+                    vo.interval = '15s';
+                    appSetNeoCatLauncher(vo)
+                })
+                neocatMenu.querySelector('#interval-30s').onclick = (() => {
+                    vo.interval = '30s';
+                    appSetNeoCatLauncher(vo)
+                })
+                neocatMenu.querySelector('#table-name').innerHTML = vo.table;
+                neocatMenu.querySelector('#table').onclick = (() => {
+                    const dlg = document.getElementById('neocat-table-dialog')
+                    let dlgInput = dlg.querySelector('#table-input')
+                    dlgInput.value = vo.table;
+                    dlg.querySelector('#table-close').onclick = (() => {
+                        vo.table = dlgInput.value.toUpperCase();
+                        appSetNeoCatLauncher(vo)
+                        dlg.hide();
+                    })
+                    dlg.show();
+                })
+                neocatMenu.querySelector('#input-cpu').checked = vo.inputCPU;
+                neocatMenu.querySelector('#input-cpu').onclick = (() => {
+                    vo.inputCPU = !vo.inputCPU;
+                    appSetNeoCatLauncher(vo)
+                    console.log('input-cpu', neocatMenu.querySelector('#input-cpu').checked);
+                })
+                neocatMenu.querySelector('#input-mem').checked = vo.inputMem;
+            }).catch((error) => {
+                console.error(error);
+            });
+        });
     </script>
 </body>
 

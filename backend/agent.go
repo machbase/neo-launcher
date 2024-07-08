@@ -135,9 +135,8 @@ func (na *NeoAgent) StartServer() {
 	}
 	cmd := exec.Command(pname, pargs...)
 	cmd.Env = os.Environ()
-	if na.navelcordEnabled {
-		navelPort := strings.TrimPrefix(na.navelcordLsnr.Addr().String(), "127.0.0.1:")
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", NAVEL_ENV, navelPort))
+	if v := na.navelcordEnv(); na.navelcordEnabled && v != "" {
+		cmd.Env = append(cmd.Env, v)
 	}
 	sysProcAttr(cmd)
 
@@ -182,6 +181,14 @@ func (na *NeoAgent) StopServer() {
 		na.processWg.Wait()
 	}
 	na.stateC <- NeoStopped
+}
+
+func (na *NeoAgent) navelcordEnv() string {
+	if na.navelcordLsnr != nil {
+		navelPort := strings.TrimPrefix(na.navelcordLsnr.Addr().String(), "127.0.0.1:")
+		return fmt.Sprintf("%s=%s", NAVEL_ENV, navelPort)
+	}
+	return ""
 }
 
 func (na *NeoAgent) runNavelCordServer() {

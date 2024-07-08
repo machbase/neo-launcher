@@ -36,6 +36,30 @@ export namespace backend {
 	        this.experiment = source["experiment"];
 	    }
 	}
+	export class NeoCatOptions {
+	    interval: string;
+	    prefix: string;
+	    table: string;
+	    inputCPU: boolean;
+	    inputMem: boolean;
+	    pid: number;
+	    binPath?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NeoCatOptions(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.interval = source["interval"];
+	        this.prefix = source["prefix"];
+	        this.table = source["table"];
+	        this.inputCPU = source["inputCPU"];
+	        this.inputMem = source["inputMem"];
+	        this.pid = source["pid"];
+	        this.binPath = source["binPath"];
+	    }
+	}
 
 }
 

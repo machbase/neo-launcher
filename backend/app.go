@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -33,6 +34,8 @@ type App struct {
 	na      *NeoAgent
 	naReady sync.WaitGroup
 
+	neocatAgent *NeoCatAgent
+
 	logBuffer      *bytes.Buffer
 	logBufferLimit int
 
@@ -55,6 +58,13 @@ func NewApp() *App {
 				Host:     "127.0.0.1",
 				LogLevel: "INFO",
 			},
+			NeoCatOptions: &NeoCatOptions{
+				Interval:  "1s",
+				DestTable: "EXAMPLE",
+				Prefix:    "neocat.",
+				InputCPU:  true,
+				InputMem:  true,
+			},
 		},
 	}
 }
@@ -62,6 +72,7 @@ func NewApp() *App {
 type Config struct {
 	UI            UIOptions      `json:"ui"`
 	LaunchOptions *LaunchOptions `json:"launchOptions,omitempty"`
+	NeoCatOptions *NeoCatOptions `json:"neoCatOptions,omitempty"`
 }
 
 type UIOptions struct {
@@ -84,6 +95,17 @@ type LaunchOptions struct {
 	JwtAtExpire         string `json:"jwtAtExpire,omitempty"`
 	JwtRtExpire         string `json:"jwtRtExpire,omitempty"`
 	Experiment          bool   `json:"experiment,omitempty"`
+}
+
+type NeoCatOptions struct {
+	Interval   string `json:"interval"`
+	Prefix     string `json:"prefix"`
+	DestTable  string `json:"table"`
+	InputCPU   bool   `json:"inputCPU"`
+	InputMem   bool   `json:"inputMem"`
+	OutputFile string `json:"outputFile,omitempty"`
+	Pid        int    `json:"pid"`
+	BinPath    string `json:"binPath,omitempty"`
 }
 
 // startup is called when the app starts. The context is saved
@@ -368,6 +390,53 @@ func (a *App) DoGetFlags() {
 	cmd := a.makeLaunchFlags()
 	strFlags := strings.Join(cmd.Flags, " ")
 	wailsRuntime.EventsEmit(a.ctx, string(EVT_FLAGS), strFlags)
+}
+
+func (a *App) DoGetNeoCatLauncher() *NeoCatOptions {
+	dir := filepath.Dir(a.conf.LaunchOptions.BinPath)
+	neocatExe := path.Join(dir, "neocat")
+	if runtime.GOOS == "windows" {
+		neocatExe += ".exe"
+	}
+	if _, err := os.Stat(neocatExe); err != nil {
+		a.conf.NeoCatOptions.BinPath = ""
+	} else {
+		a.conf.NeoCatOptions.BinPath = neocatExe
+	}
+	if a.neocatAgent == nil || a.neocatAgent.cmd == nil {
+		a.conf.NeoCatOptions.Pid = 0
+	}
+	return a.conf.NeoCatOptions
+}
+
+func (a *App) DoSetNeoCatLauncher(opt *NeoCatOptions) {
+	// preserve current bin path
+	opt.BinPath = a.conf.NeoCatOptions.BinPath
+	opt.Pid = a.conf.NeoCatOptions.Pid
+	a.conf.NeoCatOptions = opt
+}
+
+func (a *App) DoStartNeoCat() {
+	if a.na == nil {
+		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "neocat can start only when machbase-neo is running\r\n")
+		return
+	}
+	if a.neocatAgent == nil {
+		a.neocatAgent = &NeoCatAgent{navelcordEnabled: true}
+	}
+	err := a.neocatAgent.Start(a.conf.NeoCatOptions, a.NewLogWriter())
+	if err != nil {
+		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "neocat error "+err.Error()+"\r\n")
+	}
+	a.conf.NeoCatOptions.Pid = a.neocatAgent.cmd.Process.Pid
+}
+
+func (a *App) DoStopNeoCat() {
+	if a.neocatAgent == nil {
+		return
+	}
+	a.neocatAgent.Stop()
+	a.conf.NeoCatOptions.Pid = 0
 }
 
 const historyLimit = 10

@@ -218,6 +218,12 @@ window.appGetProcessInfo = function () {
     App.DoGetProcessInfo();
 }
 
+window.appGetNeoCatLauncher = App.DoGetNeoCatLauncher
+window.appSetNeoCatLauncher = App.DoSetNeoCatLauncher
+
+window.appStartNeoCatLauncher = App.DoStartNeoCat
+window.appStopNeoCatLauncher = App.DoStopNeoCat
+
 window.setTheme = function (newTheme) {
     const themeIcon = document.getElementById('themeIcon')
     const newIcon = newTheme === 'sl-theme-dark' ? 'sun-fill' : 'moon-fill';
