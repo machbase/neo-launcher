@@ -421,8 +421,16 @@ func (a *App) DoStartNeoCat() {
 		wailsRuntime.EventsEmit(a.ctx, string(EVT_LOG), "neocat can start only when machbase-neo is running\r\n")
 		return
 	}
+	a.DoStopNeoCat()
 	if a.neocatAgent == nil {
 		a.neocatAgent = &NeoCatAgent{navelcordEnabled: true}
+		if a.conf.LaunchOptions.Host != "" {
+			if a.conf.LaunchOptions.Host == "0.0.0.0" {
+				a.neocatAgent.host = "127.0.0.1:5653"
+			} else {
+				a.neocatAgent.host = fmt.Sprintf("%s:5653", a.conf.LaunchOptions.Host)
+			}
+		}
 	}
 	err := a.neocatAgent.Start(a.conf.NeoCatOptions, a.NewLogWriter())
 	if err != nil {
@@ -437,6 +445,7 @@ func (a *App) DoStopNeoCat() {
 	}
 	a.neocatAgent.Stop()
 	a.conf.NeoCatOptions.Pid = 0
+	a.neocatAgent = nil
 }
 
 const historyLimit = 10

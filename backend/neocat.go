@@ -14,7 +14,8 @@ import (
 )
 
 type NeoCatAgent struct {
-	cmd *exec.Cmd
+	cmd  *exec.Cmd
+	host string
 
 	navelcordEnabled bool
 	navelcordLsnr    *net.TCPListener
@@ -25,7 +26,9 @@ func (nc *NeoCatAgent) Start(opt *NeoCatOptions, logWriter io.Writer) error {
 	if nc.navelcordEnabled {
 		nc.runNavelCordServer()
 	}
-
+	if nc.host == "" {
+		nc.host = "127.0.0.1:5653"
+	}
 	args := []string{}
 	if opt.Interval != "" {
 		args = append(args, "--interval", opt.Interval)
@@ -41,7 +44,7 @@ func (nc *NeoCatAgent) Start(opt *NeoCatOptions, logWriter io.Writer) error {
 	}
 
 	if opt.DestTable != "" {
-		args = append(args, "--out-mqtt", fmt.Sprintf("tcp://127.0.0.1:5653/db/append/%s:csv", opt.DestTable))
+		args = append(args, "--out-mqtt", fmt.Sprintf("tcp://%s/db/append/%s:csv", nc.host, opt.DestTable))
 	}
 	if opt.OutputFile != "" {
 		args = append(args, "--out-file", opt.OutputFile)
