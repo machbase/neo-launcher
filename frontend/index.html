@@ -295,9 +295,11 @@
                     let dlgInput = dlg.querySelector('#table-input')
                     dlgInput.value = vo.table;
                     dlg.querySelector('#table-close').onclick = (() => {
+                        dlg.hide();
+                    })
+                    dlg.addEventListener('sl-after-hide', () => {
                         vo.table = dlgInput.value.toUpperCase();
                         appSetNeoCatLauncher(vo)
-                        dlg.hide();
                     })
                     dlg.show();
                 })
