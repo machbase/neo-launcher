@@ -4,6 +4,7 @@ export namespace backend {
 	    binPath?: string;
 	    data?: string;
 	    file?: string;
+	    backupDir?: string;
 	    host?: string;
 	    logLevel?: string;
 	    logFilename?: string;
@@ -24,6 +25,7 @@ export namespace backend {
 	        this.binPath = source["binPath"];
 	        this.data = source["data"];
 	        this.file = source["file"];
+	        this.backupDir = source["backupDir"];
 	        this.host = source["host"];
 	        this.logLevel = source["logLevel"];
 	        this.logFilename = source["logFilename"];

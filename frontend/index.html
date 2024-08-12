@@ -171,6 +171,12 @@
             </sl-input><br />
             <sl-input label="--host" name="host" class="label-on-left item" help-text="Listening network address"
                 placeholder="127.0.0.1"></sl-input><br />
+            <sl-input label="--backup-dir" name="backup-dir" class="label-on-left item" clearable
+                help-text="Path to the backup directory">
+                <sl-icon-button name="folder-fill" slot="suffix"
+                    onclick="appSelectDirectory(document.querySelector('sl-input[name=backup-dir]'))"
+                    style="color:#52525a;"></sl-icon-button>
+            </sl-input><br />
             <sl-details summary="Advanced options" style="margin-left:40px;">
                 <sl-select label="--log-level" name="log-level" class="label-on-left label-adv item"
                     help-text="Log level" value="INFO">

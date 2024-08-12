@@ -306,6 +306,7 @@ window.onHideLauncherOptions = function () {
         data: drawer.querySelector(".item[name='data']").value,
         file: drawer.querySelector(".item[name='file']").value,
         host: drawer.querySelector(".item[name='host']").value,
+        backupDir: drawer.querySelector(".item[name='backup-dir']").value,
         logLevel: drawer.querySelector(".item[name='log-level']").value,
         logFilename: drawer.querySelector(".item[name='log-filename']").value,
         httpDebug: drawer.querySelector(".item[name='http-debug']").value == 'true',

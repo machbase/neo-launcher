@@ -85,6 +85,7 @@ type LaunchOptions struct {
 	BinPath             string `json:"binPath,omitempty"`
 	Data                string `json:"data,omitempty"`
 	File                string `json:"file,omitempty"`
+	BackupDir           string `json:"backupDir,omitempty"`
 	Host                string `json:"host,omitempty"`
 	LogLevel            string `json:"logLevel,omitempty"`
 	LogFilename         string `json:"logFilename,omitempty"`
@@ -508,6 +509,9 @@ func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
 	}
 	if a.conf.LaunchOptions.File != "" {
 		ret.Flags = append(ret.Flags, "--file", a.conf.LaunchOptions.File)
+	}
+	if a.conf.LaunchOptions.BackupDir != "" {
+		ret.Flags = append(ret.Flags, "--backup-dir", a.conf.LaunchOptions.BackupDir)
 	}
 	if a.conf.LaunchOptions.Host != "" && a.conf.LaunchOptions.Host != "127.0.0.1" {
 		ret.Flags = append(ret.Flags, "--host", a.conf.LaunchOptions.Host)
