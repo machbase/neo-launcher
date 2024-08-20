@@ -149,7 +149,7 @@
     </nav>
     <script src="./src/main.js" type="module"></script>
     <sl-drawer label="Launcher Options" placement="top" id="drawer-options" style="--size:80vh;">
-        <form class="input-validation-required">
+        <form onsubmit="(e)=> e.preventDefault(); document.getElementById('drawer-options').hide(); onHideLauncherOptions(); return false;">
             <sl-input label="--data" name="data" class="label-on-left item" clearable
                 help-text="Path to the database directory">
                 <sl-icon-button name="folder-fill" slot="suffix"
