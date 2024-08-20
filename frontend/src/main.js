@@ -193,23 +193,23 @@ window.appClearLog = function () {
     App.DoClearLog();
 };
 
-window.appSelectDirectory = function(input) {
+window.appSelectDirectory = function (input) {
     let cur = input.value;
     App.DoSelectDirectory(cur)
-    .then((dir) => {
-        input.value = dir;
-    })
-    .catch((err) =>{
-        console.log(err);
-    })
+        .then((dir) => {
+            input.value = dir;
+        })
+        .catch((err) => {
+            console.log(err);
+        })
 }
 
-window.appSelectRecentFileDirectory = function(input) {
+window.appSelectRecentFileDirectory = function (input) {
     // TODO
     App.DoGetRecentDirList()
 }
 
-window.appSelectRecentDataDirectory = function(input) {
+window.appSelectRecentDataDirectory = function (input) {
     // TODO
     App.DoGetRecentFileList()
 }
@@ -265,14 +265,15 @@ window.onShowLauncherOptions = function () {
                     case 'host':
                         item.value = options.host ? options.host : '';
                         break;
+                    case 'backup-dir':
+                        item.value = options.backupDir ? options.backupDir : '';
+                        break;
                     case 'log-level':
                         item.value = options.logLevel ? options.logLevel : 'INFO';
                         break;
                     case 'log-filename':
                         item.value = options.logFilename ? options.logFilename : '-';
                         break;
-                    case 'backup-dir':
-                        item.value = options.backupDir ? options.backupDir : '';
                     case 'http-debug':
                         item.value = options.httpDebug ? 'true' : 'false';
                         break;
