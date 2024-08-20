@@ -271,6 +271,8 @@ window.onShowLauncherOptions = function () {
                     case 'log-filename':
                         item.value = options.logFilename ? options.logFilename : '-';
                         break;
+                    case 'backup-dir':
+                        item.value = options.backupDir ? options.backupDir : '';
                     case 'http-debug':
                         item.value = options.httpDebug ? 'true' : 'false';
                         break;
