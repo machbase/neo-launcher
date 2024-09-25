@@ -8,11 +8,11 @@
         <key>CFBundleExecutable</key>
         <string>{{.Name}}</string>
         <key>CFBundleIdentifier</key>
-        <string>com.wails.{{.Name}}</string>
+        <string>com.machbase.{{.Name}}</string>
         <key>CFBundleVersion</key>
         <string>{{.Info.ProductVersion}}</string>
         <key>CFBundleGetInfoString</key>
-        <string>{{.Info.Comments}}</string>
+        <string>Launcher for machbase-neo (https://docs.machbase.com/neo)</string>
         <key>CFBundleShortVersionString</key>
         <string>{{.Info.ProductVersion}}</string>
         <key>CFBundleIconFile</key>
@@ -22,6 +22,6 @@
         <key>NSHighResolutionCapable</key>
         <string>true</string>
         <key>NSHumanReadableCopyright</key>
-        <string>{{.Info.Copyright}}</string>
+        <string>Copyright @ machbase.com</string>
     </dict>
 </plist>

@@ -10,12 +10,7 @@ on:
   
 jobs:
   darwin:
-    strategy:
-      matrix:
-        include:
-          - { platform: macos-14, arch: arm64 }
-          - { platform: macos-13, arch: amd64 }
-    runs-on: ${{ matrix.platform }}
+    runs-on: [ macos-14 ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,10 +19,19 @@ jobs:
         with:
           go-version-file: 'go.mod'
           check-latest: true
+      - name: Import signing keychain
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          keychain: signing_temp
+          p12-file-base64: ${{ secrets.CODESIGN_DARWIN_CERTIFICATE }}
+          p12-password: ${{ secrets.CODESIGN_DARWIN_PASS }}
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.9.2
       - name: Build
-        run: wails build
+        run: wails build -platform darwin/universal -clean
+      - name: CodeSign
+        run: |-
+          codesign --timestamp --options=runtime -s ${{ secrets.CODESIGN_DARWIN_APPLE_TEAM_ID }} --deep --strict build/bin/neo-launcher.app
       - name: Archive
         uses: thedoctor0/zip-release@0.7.6
         with:
@@ -35,13 +39,19 @@ jobs:
           filename: neo-launcher.zip
           directory: build/bin
           path: neo-launcher.app
+      - name: Notarize
+        run: |-
+          xcrun notarytool submit --wait build/bin/neo-launcher.zip \
+            --team-id ${{ secrets.CODESIGN_DARWIN_APPLE_TEAM_ID }} \
+            --apple-id ${{ secrets.CODESIGN_DARWIN_APPLE_ID_USERNAME }} \
+            --password ${{ secrets.CODESIGN_DARWIN_APPLE_ID_PASS }}
       - name: Release files
         uses: svenstaro/upload-release-action@v2
         if: startsWith(github.ref, 'refs/tags/v')
         with:
             repo_token: ${{ secrets.GIT_PASS }}
             file: build/bin/neo-launcher.zip
-            asset_name: neo-launcher-$tag-darwin-${{ matrix.arch }}.zip
+            asset_name: neo-launcher-$tag-darwin.zip
             repo_name: machbase/neo-launcher
             prerelease: true
             tag: ${{ github.ref }}
@@ -51,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         with:
-          name: neo-launcher-snapshot-darwin-${{ matrix.arch }}
+          name: neo-launcher-snapshot-darwin
           path: build/bin/neo-launcher.zip
           retention-days: 5
   windows-amd64:
