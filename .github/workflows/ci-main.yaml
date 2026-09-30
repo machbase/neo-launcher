@@ -65,7 +65,7 @@ jobs:
           path: build/bin/neo-launcher.zip
           retention-days: 5
   windows-amd64:
-    runs-on: [ windows-2019 ]
+    runs-on: [ windows-2022 ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,15 +80,44 @@ jobs:
       - name: Build
         run: wails build
         shell: cmd
-      - name: Codesign
-        uses: dlemstra/code-sign-action@v1
+      - name: Setup SM client certificate file
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          DIGICERT_SM_CLIENT_CERT_FILE_B64: ${{ secrets.DIGICERT_SM_CLIENT_CERT_FILE_B64 }}
+        run: |
+          $clientCertPath = Join-Path $env:RUNNER_TEMP 'digicert-client-auth.p12'
+
+          [System.IO.File]::WriteAllBytes(
+            $clientCertPath,
+            [System.Convert]::FromBase64String($env:DIGICERT_SM_CLIENT_CERT_FILE_B64)
+          )
+
+          Add-Content $env:GITHUB_ENV "SM_CLIENT_CERT_FILE=$clientCertPath"
+      - name: Codesign windows app
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: digicert/code-signing-software-trust-action@v1
         with:
-          certificate: '${{ secrets.CODESIGN_WIN_CERTIFICATE }}' 
-          password: '${{ secrets.CODESIGN_WIN_PASS }}'
-          folder: 'build/bin'
-          recursive: false
-          files: |
-            neo-launcher.exe
+          simple-signing-mode: true
+          input: ./build/bin/neo-launcher.exe
+          keypair-alias: ${{ vars.DIGICERT_KEYPAIR_ALIAS }}
+        env:
+          SM_HOST: ${{ vars.DIGICERT_SM_HOST }}
+          SM_API_KEY: ${{ secrets.DIGICERT_SM_API_KEY }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.DIGICERT_SM_CLIENT_CERT_PASSWORD }}
+      - name: Verify windows signature
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $signature = Get-AuthenticodeSignature "$env:GITHUB_WORKSPACE\build\bin\machbase-neo.exe"
+          $signature |
+            Select-Object Status, StatusMessage, SignerCertificate, TimeStamperCertificate |
+            Format-List | Out-String | Write-Host
+
+          if ($signature.Status -ne 'Valid') {
+            throw "Authenticode signature status is not valid: $($signature.Status)"
+          }
       - name: Archive
         shell: powershell
         run: Compress-Archive -Path build/bin/neo-launcher.exe -DestinationPath build/bin/neo-launcher.zip

@@ -8,6 +8,10 @@ export namespace backend {
 	    host?: string;
 	    logLevel?: string;
 	    logFilename?: string;
+	    shellPort?: string;
+	    mqttPort?: string;
+	    httpPort?: string;
+	    machPort?: string;
 	    httpDebug?: boolean;
 	    httpEnableTokenAuth?: boolean;
 	    mqttEnableTokenAuth?: boolean;
@@ -29,6 +33,10 @@ export namespace backend {
 	        this.host = source["host"];
 	        this.logLevel = source["logLevel"];
 	        this.logFilename = source["logFilename"];
+	        this.shellPort = source["shellPort"];
+	        this.mqttPort = source["mqttPort"];
+	        this.httpPort = source["httpPort"];
+	        this.machPort = source["machPort"];
 	        this.httpDebug = source["httpDebug"];
 	        this.httpEnableTokenAuth = source["httpEnableTokenAuth"];
 	        this.mqttEnableTokenAuth = source["mqttEnableTokenAuth"];
