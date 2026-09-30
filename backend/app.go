@@ -529,16 +529,16 @@ func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
 	if a.conf.LaunchOptions.HttpDebug {
 		ret.Flags = append(ret.Flags, "--http-debug", "true")
 	}
-	if a.conf.LaunchOptions.ShellPort != "" {
+	if a.conf.LaunchOptions.ShellPort != "" && a.conf.LaunchOptions.ShellPort != "5652" {
 		ret.Flags = append(ret.Flags, "--shell-port", a.conf.LaunchOptions.ShellPort)
 	}
-	if a.conf.LaunchOptions.MqttPort != "" {
+	if a.conf.LaunchOptions.MqttPort != "" && a.conf.LaunchOptions.MqttPort != "5653" {
 		ret.Flags = append(ret.Flags, "--mqtt-port", a.conf.LaunchOptions.MqttPort)
 	}
-	if a.conf.LaunchOptions.HttpPort != "" {
+	if a.conf.LaunchOptions.HttpPort != "" && a.conf.LaunchOptions.HttpPort != "5654" {
 		ret.Flags = append(ret.Flags, "--http-port", a.conf.LaunchOptions.HttpPort)
 	}
-	if a.conf.LaunchOptions.MachPort != "" {
+	if a.conf.LaunchOptions.MachPort != "" && a.conf.LaunchOptions.MachPort != "5656" {
 		ret.Flags = append(ret.Flags, "--mach-port", a.conf.LaunchOptions.MachPort)
 	}
 	if a.conf.LaunchOptions.HttpEnableTokenAuth {
