@@ -274,6 +274,18 @@ window.onShowLauncherOptions = function () {
                     case 'log-filename':
                         item.value = options.logFilename ? options.logFilename : '-';
                         break;
+                    case 'shell-port':
+                        item.value = options.shellPort ? options.shellPort : '5652';
+                        break;
+                    case 'mqtt-port':
+                        item.value = options.mqttPort ? options.mqttPort : '5653';
+                        break;
+                    case 'http-port':
+                        item.value = options.httpPort ? options.httpPort : '5654';
+                        break;
+                    case 'mach-port':
+                        item.value = options.machPort ? options.machPort : '5656';
+                        break;
                     case 'http-debug':
                         item.value = options.httpDebug ? 'true' : 'false';
                         break;
@@ -312,6 +324,10 @@ window.onHideLauncherOptions = function () {
         backupDir: drawer.querySelector(".item[name='backup-dir']").value,
         logLevel: drawer.querySelector(".item[name='log-level']").value,
         logFilename: drawer.querySelector(".item[name='log-filename']").value,
+        shellPort: drawer.querySelector(".item[name='shell-port']").value,
+        mqttPort: drawer.querySelector(".item[name='mqtt-port']").value,
+        httpPort: drawer.querySelector(".item[name='http-port']").value,
+        machPort: drawer.querySelector(".item[name='mach-port']").value,
         httpDebug: drawer.querySelector(".item[name='http-debug']").value == 'true',
         httpEnableTokenAuth: drawer.querySelector(".item[name='http-enable-token-auth']").value == 'true',
         mqttEnableTokenAuth: drawer.querySelector(".item[name='mqtt-enable-token-auth']").value == 'true',

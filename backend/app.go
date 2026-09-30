@@ -89,6 +89,10 @@ type LaunchOptions struct {
 	Host                string `json:"host,omitempty"`
 	LogLevel            string `json:"logLevel,omitempty"`
 	LogFilename         string `json:"logFilename,omitempty"`
+	ShellPort           string `json:"shellPort,omitempty"`
+	MqttPort            string `json:"mqttPort,omitempty"`
+	HttpPort            string `json:"httpPort,omitempty"`
+	MachPort            string `json:"machPort,omitempty"`
 	HttpDebug           bool   `json:"httpDebug,omitempty"`
 	HttpEnableTokenAuth bool   `json:"httpEnableTokenAuth,omitempty"`
 	MqttEnableTokenAuth bool   `json:"mqttEnableTokenAuth,omitempty"`
@@ -524,6 +528,18 @@ func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
 	}
 	if a.conf.LaunchOptions.HttpDebug {
 		ret.Flags = append(ret.Flags, "--http-debug", "true")
+	}
+	if a.conf.LaunchOptions.ShellPort != "" {
+		ret.Flags = append(ret.Flags, "--shell-port", a.conf.LaunchOptions.ShellPort)
+	}
+	if a.conf.LaunchOptions.MqttPort != "" {
+		ret.Flags = append(ret.Flags, "--mqtt-port", a.conf.LaunchOptions.MqttPort)
+	}
+	if a.conf.LaunchOptions.HttpPort != "" {
+		ret.Flags = append(ret.Flags, "--http-port", a.conf.LaunchOptions.HttpPort)
+	}
+	if a.conf.LaunchOptions.MachPort != "" {
+		ret.Flags = append(ret.Flags, "--mach-port", a.conf.LaunchOptions.MachPort)
 	}
 	if a.conf.LaunchOptions.HttpEnableTokenAuth {
 		ret.Flags = append(ret.Flags, "--http-enable-token-auth", "true")
