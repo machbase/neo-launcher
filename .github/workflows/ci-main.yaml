@@ -110,7 +110,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $signature = Get-AuthenticodeSignature "$env:GITHUB_WORKSPACE\build\bin\machbase-neo.exe"
+          $signature = Get-AuthenticodeSignature "$env:GITHUB_WORKSPACE\build\bin\neo-launcher.exe"
           $signature |
             Select-Object Status, StatusMessage, SignerCertificate, TimeStamperCertificate |
             Format-List | Out-String | Write-Host
