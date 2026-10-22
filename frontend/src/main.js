@@ -290,10 +290,10 @@ window.onShowLauncherOptions = function () {
                         item.value = options.httpDebug ? 'true' : 'false';
                         break;
                     case 'http-enable-token-auth':
-                        item.value = options.httpEnableTokenAuth ? 'true' : 'false';
+                        item.value = options.httpDisableTokenAuth ? 'false' : 'true';
                         break;
                     case 'mqtt-enable-token-auth':
-                        item.value = options.mqttEnableTokenAuth ? 'true' : 'false';
+                        item.value = options.mqttDisableTokenAuth ? 'false' : 'true';
                         break;
                     case 'mqtt-enable-tls':
                         item.value = options.mqttEnableTls ? 'true' : 'false';
@@ -329,8 +329,8 @@ window.onHideLauncherOptions = function () {
         httpPort: drawer.querySelector(".item[name='http-port']").value,
         machPort: drawer.querySelector(".item[name='mach-port']").value,
         httpDebug: drawer.querySelector(".item[name='http-debug']").value == 'true',
-        httpEnableTokenAuth: drawer.querySelector(".item[name='http-enable-token-auth']").value == 'true',
-        mqttEnableTokenAuth: drawer.querySelector(".item[name='mqtt-enable-token-auth']").value == 'true',
+        httpDisableTokenAuth: drawer.querySelector(".item[name='http-enable-token-auth']").value == 'false',
+        mqttDisableTokenAuth: drawer.querySelector(".item[name='mqtt-enable-token-auth']").value == 'false',
         mqttEnableTls: drawer.querySelector(".item[name='mqtt-enable-tls']").value == 'true',
         jwtAtExpire: drawer.querySelector(".item[name='jwt-at-expire']").value,
         jwtRtExpire: drawer.querySelector(".item[name='jwt-rt-expire']").value,

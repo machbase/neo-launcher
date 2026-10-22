@@ -207,15 +207,15 @@
                     help-text="JWT Refresh Token Expiration" placeholder="60m" clearable></sl-input><br />
 
                 <sl-select label="--http-enable-token-auth" name="http-enable-token-auth"
-                    class="label-on-left label-adv item" help-text="Enable HTTP Token Authentication" value="false">
+                    class="label-on-left label-adv item" help-text="Token authentication is enabled by default. Disable only on trusted networks." value="true">
                     <sl-option value="true">true</sl-option>
-                    <sl-option value="false">false</sl-option>
+                    <sl-option value="false">false (not recommended)</sl-option>
                 </sl-select><br />
 
                 <sl-select label="--mqtt-enable-token-auth" name="mqtt-enable-token-auth"
-                    class="label-on-left label-adv item" help-text="Enable MQTT Token Authentication" value="false">
+                    class="label-on-left label-adv item" help-text="Token authentication is enabled by default. Disable only on trusted networks." value="true">
                     <sl-option value="true">true</sl-option>
-                    <sl-option value="false">false</sl-option>
+                    <sl-option value="false">false (not recommended)</sl-option>
                 </sl-select><br />
 
                 <sl-select label="--mqtt-enable-tls" name="mqtt-enable-tls" class="label-on-left label-adv item"

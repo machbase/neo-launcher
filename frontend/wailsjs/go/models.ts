@@ -13,8 +13,8 @@ export namespace backend {
 	    httpPort?: string;
 	    machPort?: string;
 	    httpDebug?: boolean;
-	    httpEnableTokenAuth?: boolean;
-	    mqttEnableTokenAuth?: boolean;
+	    httpDisableTokenAuth?: boolean;
+	    mqttDisableTokenAuth?: boolean;
 	    mqttEnableTls?: boolean;
 	    jwtAtExpire?: string;
 	    jwtRtExpire?: string;
@@ -38,8 +38,8 @@ export namespace backend {
 	        this.httpPort = source["httpPort"];
 	        this.machPort = source["machPort"];
 	        this.httpDebug = source["httpDebug"];
-	        this.httpEnableTokenAuth = source["httpEnableTokenAuth"];
-	        this.mqttEnableTokenAuth = source["mqttEnableTokenAuth"];
+	        this.httpDisableTokenAuth = source["httpDisableTokenAuth"];
+	        this.mqttDisableTokenAuth = source["mqttDisableTokenAuth"];
 	        this.mqttEnableTls = source["mqttEnableTls"];
 	        this.jwtAtExpire = source["jwtAtExpire"];
 	        this.jwtRtExpire = source["jwtRtExpire"];

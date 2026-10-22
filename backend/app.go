@@ -82,24 +82,24 @@ type UIOptions struct {
 }
 
 type LaunchOptions struct {
-	BinPath             string `json:"binPath,omitempty"`
-	Data                string `json:"data,omitempty"`
-	File                string `json:"file,omitempty"`
-	BackupDir           string `json:"backupDir,omitempty"`
-	Host                string `json:"host,omitempty"`
-	LogLevel            string `json:"logLevel,omitempty"`
-	LogFilename         string `json:"logFilename,omitempty"`
-	ShellPort           string `json:"shellPort,omitempty"`
-	MqttPort            string `json:"mqttPort,omitempty"`
-	HttpPort            string `json:"httpPort,omitempty"`
-	MachPort            string `json:"machPort,omitempty"`
-	HttpDebug           bool   `json:"httpDebug,omitempty"`
-	HttpEnableTokenAuth bool   `json:"httpEnableTokenAuth,omitempty"`
-	MqttEnableTokenAuth bool   `json:"mqttEnableTokenAuth,omitempty"`
-	MqttEnableTls       bool   `json:"mqttEnableTls,omitempty"`
-	JwtAtExpire         string `json:"jwtAtExpire,omitempty"`
-	JwtRtExpire         string `json:"jwtRtExpire,omitempty"`
-	Experiment          bool   `json:"experiment,omitempty"`
+	BinPath              string `json:"binPath,omitempty"`
+	Data                 string `json:"data,omitempty"`
+	File                 string `json:"file,omitempty"`
+	BackupDir            string `json:"backupDir,omitempty"`
+	Host                 string `json:"host,omitempty"`
+	LogLevel             string `json:"logLevel,omitempty"`
+	LogFilename          string `json:"logFilename,omitempty"`
+	ShellPort            string `json:"shellPort,omitempty"`
+	MqttPort             string `json:"mqttPort,omitempty"`
+	HttpPort             string `json:"httpPort,omitempty"`
+	MachPort             string `json:"machPort,omitempty"`
+	HttpDebug            bool   `json:"httpDebug,omitempty"`
+	HttpDisableTokenAuth bool   `json:"httpDisableTokenAuth,omitempty"`
+	MqttDisableTokenAuth bool   `json:"mqttDisableTokenAuth,omitempty"`
+	MqttEnableTls        bool   `json:"mqttEnableTls,omitempty"`
+	JwtAtExpire          string `json:"jwtAtExpire,omitempty"`
+	JwtRtExpire          string `json:"jwtRtExpire,omitempty"`
+	Experiment           bool   `json:"experiment,omitempty"`
 }
 
 type NeoCatOptions struct {
@@ -541,11 +541,11 @@ func (a *App) makeLaunchFlags() *LaunchCmdWithFlags {
 	if a.conf.LaunchOptions.MachPort != "" && a.conf.LaunchOptions.MachPort != "5656" {
 		ret.Flags = append(ret.Flags, "--mach-port", a.conf.LaunchOptions.MachPort)
 	}
-	if a.conf.LaunchOptions.HttpEnableTokenAuth {
-		ret.Flags = append(ret.Flags, "--http-enable-token-auth", "true")
+	if a.conf.LaunchOptions.HttpDisableTokenAuth {
+		ret.Flags = append(ret.Flags, "--http-enable-token-auth", "false")
 	}
-	if a.conf.LaunchOptions.MqttEnableTokenAuth {
-		ret.Flags = append(ret.Flags, "--mqtt-enable-token-auth", "true")
+	if a.conf.LaunchOptions.MqttDisableTokenAuth {
+		ret.Flags = append(ret.Flags, "--mqtt-enable-token-auth", "false")
 	}
 	if a.conf.LaunchOptions.MqttEnableTls {
 		ret.Flags = append(ret.Flags, "--mqtt-enable-tls", "true")
